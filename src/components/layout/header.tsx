@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { Search, ShoppingBag, User, Menu, Heart, LogOut, ChevronDown } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -15,7 +16,7 @@ import { cn } from "@/lib/utils"
 import { shopLinks, mobileMenuSections } from "@/lib/navigation"
 import { siteConfig } from "@/lib/config"
 import { useTranslations } from "next-intl"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import type { Category } from "@/types"
 import { useCartStore } from "@/store/cart"
 import { useAuthStore } from "@/store/auth"
@@ -41,7 +42,10 @@ export function Header({ categories = [] }: HeaderProps) {
   const router = useRouter()
 
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
   const itemCount = mounted ? getItemCount() : 0
 
   // Cmd+K / Ctrl+K to open search
@@ -142,8 +146,15 @@ export function Header({ categories = [] }: HeaderProps) {
         </Sheet>
 
         {/* Logo */}
-        <Link href="/" className="text-xl font-semibold tracking-tight">
-          {siteConfig.name}
+        <Link href="/" className="relative block h-11 w-32" aria-label={`${siteConfig.name} home`}>
+          <Image
+            src="/images/site_images/logo.png"
+            alt={`${siteConfig.name} logo`}
+            fill
+            priority
+            sizes="128px"
+            className="object-contain"
+          />
         </Link>
 
         {/* Desktop nav */}

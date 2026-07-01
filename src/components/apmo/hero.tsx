@@ -9,7 +9,6 @@ import {
   CountUp,
   MagneticButton,
   Reveal,
-  SplitHeading,
 } from "@/components/apmo/animation"
 import { imageAssets, stats, trustMarks } from "@/components/apmo/data"
 
@@ -28,6 +27,10 @@ const intro: Variants = {
     },
   }),
 }
+
+const heroWords = ["Curls", "Care", "Confidence"]
+
+const ritualChips = ["Detangle", "Nourish", "Protect", "Glow"]
 
 export function Hero() {
   const heroRef = useRef<HTMLElement>(null)
@@ -58,12 +61,12 @@ export function Hero() {
   return (
     <section
       ref={heroRef}
-      className="relative isolate flex min-h-[calc(100vh-4rem)] overflow-hidden bg-[#fff8f1] px-4 py-20 text-[#351426] sm:px-6 lg:items-center"
+      className="relative isolate flex min-h-[calc(100vh-4rem)] overflow-hidden bg-[#fff8f1] px-4 py-12 text-[#351426] sm:px-6 lg:items-center lg:py-16"
     >
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(244,114,182,0.22),transparent_34%),radial-gradient(circle_at_78%_10%,rgba(251,191,36,0.22),transparent_32%),linear-gradient(145deg,#fff8f1_18%,#fff0e5_54%,#ffffff_100%)]" />
       <div className="absolute inset-x-0 bottom-0 -z-10 h-52 bg-gradient-to-t from-white to-transparent" />
 
-      <div className="mx-auto grid w-full max-w-7xl gap-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
+      <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
         <div className="relative z-10">
           <motion.p
             className="inline-flex rounded-full border border-rose-200 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.32em] text-rose-600 backdrop-blur-xl"
@@ -75,14 +78,51 @@ export function Hero() {
             Premium textured hair rituals
           </motion.p>
 
-          <SplitHeading
-            as="h1"
-            text="Beauty that moves with your hair story"
-            className="mt-7 max-w-5xl font-serif text-6xl italic leading-[0.84] tracking-[-0.07em] text-[#351426] sm:text-7xl lg:text-[7.8rem]"
-          />
+          <h1 className="mt-6 max-w-4xl font-serif text-6xl italic leading-[0.86] tracking-[-0.075em] text-[#351426] sm:text-7xl lg:text-[7rem] xl:text-[8.3rem]">
+            <span className="sr-only">Curls, care, and confidence by Apmo.</span>
+            <span aria-hidden="true" className="block">
+              {heroWords.map((word, index) => (
+                <motion.span
+                  key={word}
+                  className="block overflow-visible"
+                  initial={{ opacity: 0, y: 42, filter: "blur(16px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{
+                    delay: 0.8 + index * 0.12,
+                    duration: 0.8,
+                    ease: heroEase,
+                  }}
+                >
+                  {word}
+                  {index < heroWords.length - 1 ? (
+                    <span className="text-rose-400">.</span>
+                  ) : (
+                    <span className="text-amber-400">.</span>
+                  )}
+                </motion.span>
+              ))}
+            </span>
+          </h1>
+
+          <motion.div
+            className="mt-5 flex flex-wrap gap-2"
+            variants={intro}
+            initial="hidden"
+            animate="visible"
+            custom={4}
+          >
+            {ritualChips.map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full border border-rose-200 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#6c4354] shadow-sm shadow-rose-950/5 backdrop-blur"
+              >
+                {chip}
+              </span>
+            ))}
+          </motion.div>
 
           <motion.p
-            className="mt-7 max-w-2xl text-base leading-8 text-[#6c4354] sm:text-lg"
+            className="mt-6 max-w-2xl text-base leading-8 text-[#6c4354] sm:text-lg"
             variants={intro}
             initial="hidden"
             animate="visible"
@@ -95,7 +135,7 @@ export function Hero() {
           </motion.p>
 
           <motion.div
-            className="mt-9 flex flex-col gap-4 sm:flex-row"
+            className="mt-8 flex flex-col gap-4 sm:flex-row"
             variants={intro}
             initial="hidden"
             animate="visible"
@@ -107,7 +147,7 @@ export function Hero() {
             </MagneticButton>
           </motion.div>
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-3">
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {stats.map((stat, index) => (
               <Reveal
                 key={stat.label}

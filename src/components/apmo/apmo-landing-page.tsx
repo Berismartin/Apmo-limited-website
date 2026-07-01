@@ -3,8 +3,6 @@
 import {
   AmbientBackground,
   CursorGlow,
-  LoadingScreen,
-  PageTransitionOverlay,
   SectionDivider,
   SmoothScroll,
 } from "@/components/apmo/animation"
@@ -22,8 +20,6 @@ export function ApmoLandingPage() {
   return (
     <SmoothScroll>
       <div className="relative isolate min-h-screen overflow-hidden bg-[#fff8f1] text-[#351426]">
-        <LoadingScreen />
-        <PageTransitionOverlay />
         <AmbientBackground />
         <CursorGlow />
         <div>

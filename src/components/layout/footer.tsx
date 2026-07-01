@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Separator } from "@/components/ui/separator"
 import { siteConfig } from "@/lib/config"
 
@@ -71,8 +72,14 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2">
-            <Link href="/" className="text-xl font-semibold tracking-tight">
-              {siteConfig.name}
+            <Link href="/" className="relative block h-20 w-56" aria-label={`${siteConfig.name} home`}>
+              <Image
+                src="/images/site_images/logo.png"
+                alt={`${siteConfig.name} logo`}
+                fill
+                sizes="224px"
+                className="object-contain object-left"
+              />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               {siteConfig.tagline}
