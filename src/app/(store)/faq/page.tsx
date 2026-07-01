@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import {
   Accordion,
   AccordionContent,
@@ -8,49 +9,49 @@ import {
 
 export const metadata: Metadata = {
   title: "FAQ",
-  description: "Frequently asked questions about orders, shipping, returns, and more.",
+  description: "Frequently asked questions about Apmo products, rituals, guidance, and orders.",
 }
 
 const faqs = [
   {
-    question: "How long does shipping take?",
+    question: "What hair types are Apmo products designed for?",
     answer:
-      "Standard shipping typically takes 5-7 business days. Express shipping is available at checkout and delivers within 2-3 business days.",
+      "Apmo products are designed for textured hair, curls, coils, relaxed hair, protective styles, and customers who want gentle moisture-first routines.",
   },
   {
-    question: "What is your return policy?",
+    question: "Can I get help choosing the right product?",
     answer:
-      "We offer a 30-day return policy on all items. Products must be in their original condition with tags attached. Visit our returns page for more details.",
+      "Yes. Use the contact page or book the hair ritual consultation product for guidance based on your texture, routine, and goals.",
   },
   {
-    question: "Do you ship internationally?",
+    question: "Is the full Apmo website live?",
     answer:
-      "Yes, we ship to most countries worldwide. International shipping rates and delivery times vary by destination. You can see the exact cost at checkout.",
+      "The public reference site is currently under construction. This storefront is structured so customers can browse products and contact Apmo while the full launch is prepared.",
   },
   {
-    question: "How can I track my order?",
+    question: "How should I use the Petangler Mist?",
     answer:
-      "Once your order ships, you'll receive a confirmation email with a tracking number. You can also track your order from your account dashboard.",
+      "Mist through damp or dry hair section by section before combing, finger detangling, or refreshing curls and protective styles.",
   },
   {
-    question: "What payment methods do you accept?",
+    question: "Do the products work for children?",
     answer:
-      "We accept all major credit cards (Visa, Mastercard, American Express), PayPal, and Apple Pay. All transactions are secured with SSL encryption.",
+      "The routines are designed to be practical for family haircare, including easier detangling moments. For sensitivities, contact Apmo before purchase.",
   },
   {
-    question: "How do I contact customer support?",
+    question: "How do I contact Apmo?",
     answer:
-      "You can reach us via our contact page, email us at support@store.com, or call (555) 123-4567. Our support team is available Monday through Friday, 9am to 5pm EST.",
+      "You can use the contact form or email hello@apmoug.com for product guidance, launch questions, and support.",
   },
   {
     question: "Can I change or cancel my order?",
     answer:
-      "You can modify or cancel your order within 1 hour of placing it. After that, please contact our support team and we'll do our best to accommodate your request.",
+      "Contact Apmo as soon as possible after placing an order. If fulfillment has not started, the team can help adjust the request.",
   },
   {
-    question: "Do you offer gift cards?",
+    question: "Do you offer consultations?",
     answer:
-      "Yes! Digital gift cards are available in denominations of $25, $50, $100, and $200. They're delivered instantly via email and never expire.",
+      "Yes. The Apmo Hair Ritual Consultation is available in the shop as a guided service for building a personal routine.",
   },
 ]
 
@@ -61,8 +62,8 @@ export default function FAQPage() {
         Frequently Asked Questions
       </h1>
       <p className="mt-4 text-muted-foreground">
-        Find answers to common questions about our products, shipping, and
-        policies.
+        Find answers to common questions about Apmo products, rituals, guidance,
+        and ordering.
       </p>
 
       <Accordion className="mt-8">
@@ -84,12 +85,12 @@ export default function FAQPage() {
           Can&apos;t find what you&apos;re looking for? Our support team is
           happy to help.
         </p>
-        <a
+        <Link
           href="/contact"
           className="mt-4 inline-block text-sm font-medium underline hover:text-foreground"
         >
           Contact Support
-        </a>
+        </Link>
       </div>
     </div>
   )

@@ -45,15 +45,15 @@ function IconTikTok({ className }: { className?: string }) {
 const footerLinks = {
   shop: [
     { name: "All Products", href: "/shop" },
-    { name: "All Brands", href: "/brands" },
-    { name: "New Arrivals", href: "/shop?sort=newest" },
-    { name: "Sale", href: "/shop?sale=true" },
+    { name: "Haircare", href: "/haircare" },
+    { name: "Scalp Care", href: "/scalp-care" },
+    { name: "Ritual Kits", href: "/ritual-kits" },
   ],
   company: [
-    { name: "About", href: "/about" },
-    { name: "Blog", href: "/blog" },
+    { name: "About Apmo", href: "/about" },
     { name: "Contact", href: "/contact" },
     { name: "FAQ", href: "/faq" },
+    { name: "Blog", href: "/blog" },
   ],
   legal: [
     { name: "Shipping Policy", href: "/policies/shipping" },
@@ -136,15 +136,7 @@ export function Footer() {
           <p className="text-xs text-muted-foreground">
             &copy; {siteConfig.copyrightYear} {siteConfig.name}. All rights reserved.
             <br className="sm:hidden" />
-            {" "}Design by{" "}
-            <a
-              href="https://epicdesignlabs.com"
-              target="_blank"
-              rel="noopener"
-              className="underline hover:text-foreground"
-            >
-              Epic Design Labs
-            </a>
+            {" "}Premium textured haircare rituals.
           </p>
           <div className="flex items-center gap-4">
             <a href="#" className="text-muted-foreground transition-colors hover:text-foreground" aria-label="Twitter">

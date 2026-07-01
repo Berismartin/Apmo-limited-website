@@ -1,8 +1,4 @@
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
-import { AnnouncementBar } from "@/components/layout/announcement-bar"
-import { CartDrawer } from "@/components/cart/cart-drawer"
-import { BackToTop } from "@/components/layout/back-to-top"
+import { StoreChrome } from "@/components/layout/store-chrome"
 import { categoryRepository } from "@/lib/repositories"
 
 export default async function StoreLayout({
@@ -22,14 +18,9 @@ export default async function StoreLayout({
       >
         Skip to content
       </a>
-      <AnnouncementBar />
-      <Header categories={categories} />
-      <main id="main-content" className="flex-1">
+      <StoreChrome categories={categories}>
         {children}
-      </main>
-      <Footer />
-      <CartDrawer />
-      <BackToTop />
+      </StoreChrome>
     </>
   )
 }

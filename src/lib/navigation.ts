@@ -12,11 +12,11 @@ export interface NavSection {
 // mobile menu, and anywhere else. Edit this one file to update all menus.
 
 export const shopLinks: NavItem[] = [
-  { name: "Electronics", href: "/electronics" },
-  { name: "Clothing", href: "/clothing" },
-  { name: "Home & Kitchen", href: "/home-kitchen" },
-  { name: "Accessories", href: "/accessories" },
-  { name: "Food & Drink", href: "/food-drink" },
+  { name: "All Products", href: "/shop" },
+  { name: "Haircare", href: "/haircare" },
+  { name: "Scalp Care", href: "/scalp-care" },
+  { name: "Ritual Kits", href: "/ritual-kits" },
+  { name: "Styling", href: "/styling" },
 ]
 
 export const accountLinks: NavItem[] = [
@@ -26,12 +26,11 @@ export const accountLinks: NavItem[] = [
 ]
 
 export const infoLinks: NavItem[] = [
-  { name: "All Brands", href: "/brands" },
-  { name: "Blog", href: "/blog" },
-  { name: "Pages", href: "/pages" },
-  { name: "About", href: "/about" },
+  { name: "About Apmo", href: "/about" },
   { name: "Contact", href: "/contact" },
   { name: "FAQ", href: "/faq" },
+  { name: "Blog", href: "/blog" },
+  { name: "Pages", href: "/pages" },
 ]
 
 export const mobileMenuSections: NavSection[] = [

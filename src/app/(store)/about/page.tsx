@@ -2,85 +2,63 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-  title: "About",
+  title: "About Apmo",
   description:
-    "Learn about the Next.js Ecommerce Starter template and Epic Design Labs, the team behind it.",
+    "Learn about Apmo's premium textured haircare rituals, product education, and beauty philosophy.",
 }
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold tracking-tight">About This Starter</h1>
+    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+      <p className="text-xs font-semibold uppercase tracking-[0.35em] text-rose-600">
+        About Apmo
+      </p>
+      <h1 className="mt-4 font-serif text-5xl italic tracking-[-0.05em] text-[#351426] sm:text-6xl">
+        Haircare that feels personal, polished, and easy to trust.
+      </h1>
       <div className="mt-8 space-y-6 text-muted-foreground">
         <p>
-          The Next.js Ecommerce Starter is a free, open-source template designed
-          to give developers and businesses a production-ready foundation for
-          building modern online stores. It&apos;s built with Next.js, Tailwind CSS,
-          and shadcn/ui — and it&apos;s designed to connect to any checkout or
-          payment system.
+          Apmo is a textured haircare brand focused on moisture-first products,
+          practical education, and confidence-led beauty rituals. The public
+          website is coming soon, but the store is already structured around the
+          experience customers need: discover products, understand routines, and
+          contact the team for guidance.
         </p>
         <p>
-          Whether you&apos;re a developer looking for a clean starting point or a
-          business that needs a custom storefront, this template covers the
-          essentials: product catalog, cart, checkout, search, authentication,
-          wishlist, and more — all built with accessibility, SEO, and
-          performance in mind.
+          The brand language is warm, premium, and human. Apmo combines product
+          care with salon-style consultation so customers can choose formulas
+          that fit their texture, lifestyle, protective styles, and wash-day
+          habits.
         </p>
 
         <h2 className="!mt-12 text-xl font-semibold text-foreground">
-          Built by Epic Design Labs
-        </h2>
-        <p>
-          This starter was created by{" "}
-          <a
-            href="https://epicdesignlabs.com"
-            target="_blank"
-            rel="noopener"
-            className="underline hover:text-foreground"
-          >
-            Epic Design Labs
-          </a>
-          , a design and development studio that helps businesses build
-          high-performing ecommerce experiences. We work with brands of all
-          sizes to design, develop, and optimize online stores that convert.
-        </p>
-
-        <h2 className="!mt-12 text-xl font-semibold text-foreground">
-          What&apos;s Included
+          What Apmo Believes
         </h2>
         <ul className="list-inside list-disc space-y-2">
-          <li>30+ pages with responsive layouts</li>
-          <li>Product catalog with categories, subcategories, and brands</li>
-          <li>Shopping cart with slide-out drawer</li>
-          <li>Pluggable checkout provider (connect any payment system)</li>
-          <li>Search modal with instant results</li>
-          <li>Wishlist and recently viewed products</li>
-          <li>Authentication with protected routes</li>
-          <li>Full SEO setup (metadata, structured data, sitemap)</li>
-          <li>Accessibility compliant (WCAG best practices)</li>
-          <li>Internationalization ready (next-intl with EN/ES)</li>
-          <li>Theme variables for easy rebranding</li>
+          <li>Textured hair deserves products that are gentle, effective, and easy to use.</li>
+          <li>Education should sit beside every product, not after the sale.</li>
+          <li>Beauty experiences can feel luxurious without feeling distant.</li>
         </ul>
 
         <h2 className="!mt-12 text-xl font-semibold text-foreground">
-          Need a Developer?
+          What You Can Do Here
+        </h2>
+        <ul className="list-inside list-disc space-y-2">
+          <li>Browse Apmo haircare, scalp care, styling, and ritual kits.</li>
+          <li>Open product pages with images, variants, cart actions, and details.</li>
+          <li>Use search, wishlist, cart, checkout, FAQ, account, and contact routes.</li>
+          <li>Reach out for product guidance while the full Apmo launch is being prepared.</li>
+        </ul>
+
+        <h2 className="!mt-12 text-xl font-semibold text-foreground">
+          Need Guidance?
         </h2>
         <p>
-          This template is free to use, modify, and deploy. If you need help
-          customizing it, integrating a payment provider, or building something
-          more complex, our team is here to help.{" "}
+          If you are unsure which product fits your hair story, start with a
+          consultation or send the team a message.{" "}
           <Link href="/contact" className="underline hover:text-foreground">
             Get in touch
-          </Link>{" "}
-          or visit{" "}
-          <a
-            href="https://epicdesignlabs.com"
-            target="_blank"
-            rel="noopener"
-            className="underline hover:text-foreground"
-          >
-            epicdesignlabs.com
-          </a>
+          </Link>
           .
         </p>
       </div>
