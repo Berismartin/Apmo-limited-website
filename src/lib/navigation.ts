@@ -27,6 +27,7 @@ export const accountLinks: NavItem[] = [
 
 export const infoLinks: NavItem[] = [
   { name: "About Apmo", href: "/about" },
+  { name: "Testimonials", href: "/testimonials" },
   { name: "Contact", href: "/contact" },
   { name: "FAQ", href: "/faq" },
   { name: "Blog", href: "/blog" },
