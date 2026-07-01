@@ -9,6 +9,9 @@ const envSchema = z.object({
 
   // Optional — add validation as you integrate services
   NEXT_PUBLIC_BASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 
   // Uncomment when integrating a payment provider:
   // STRIPE_SECRET_KEY: z.string().startsWith("sk_"),

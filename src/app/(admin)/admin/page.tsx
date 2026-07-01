@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageHeader } from "@/components/ui/page-header"
+import { getAdminCatalogState } from "@/lib/admin/product-admin"
 import { DollarSign, Package, ShoppingCart, Users } from "lucide-react"
 
-const stats = [
-  { name: "Total Revenue", value: "$12,345", icon: DollarSign },
-  { name: "Orders", value: "156", icon: ShoppingCart },
-  { name: "Products", value: "48", icon: Package },
-  { name: "Customers", value: "2,340", icon: Users },
-]
+export default async function AdminDashboardPage() {
+  const { configured, products } = await getAdminCatalogState()
+  const stats = [
+    { name: "Total Revenue", value: "$0", icon: DollarSign },
+    { name: "Orders", value: "0", icon: ShoppingCart },
+    { name: "Products", value: configured ? String(products.length) : "Setup required", icon: Package },
+    { name: "Customers", value: "0", icon: Users },
+  ]
 
-export default function AdminDashboardPage() {
   return (
     <div>
       <PageHeader title="Dashboard" description="Overview of your store performance." />

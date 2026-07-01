@@ -1,11 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { LayoutDashboard, Package, Users } from "lucide-react"
+import { LayoutDashboard, Package, ShoppingBag, Users } from "lucide-react"
 import { useAuthGuard } from "@/hooks/use-auth-guard"
 
 const adminNav = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Products", href: "/admin/products", icon: ShoppingBag },
   { name: "Orders", href: "/admin/orders", icon: Package },
   { name: "Customers", href: "/admin/customers", icon: Users },
 ]

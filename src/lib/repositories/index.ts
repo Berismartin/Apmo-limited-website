@@ -1,9 +1,24 @@
-// Re-export the JSON-backed repositories as the default implementations.
-// To swap backends (database, CMS, API), implement the same interfaces
-// and change these exports.
+import { isSupabaseConfigured } from "@/lib/supabase/server"
+import { jsonProductRepository } from "./json-product-repository"
+import { jsonCategoryRepository } from "./json-category-repository"
+import { jsonBrandRepository } from "./json-brand-repository"
+import { supabaseProductRepository } from "./supabase-product-repository"
+import { supabaseCategoryRepository } from "./supabase-category-repository"
+import { supabaseBrandRepository } from "./supabase-brand-repository"
 
-export { jsonProductRepository as productRepository } from "./json-product-repository"
-export { jsonCategoryRepository as categoryRepository } from "./json-category-repository"
-export { jsonBrandRepository as brandRepository } from "./json-brand-repository"
+const useSupabase = isSupabaseConfigured()
+
+export const productRepository = useSupabase
+  ? supabaseProductRepository
+  : jsonProductRepository
+
+export const categoryRepository = useSupabase
+  ? supabaseCategoryRepository
+  : jsonCategoryRepository
+
+export const brandRepository = useSupabase
+  ? supabaseBrandRepository
+  : jsonBrandRepository
+
 export { jsonPageRepository as pageRepository } from "./json-page-repository"
 export { jsonBlogRepository as blogRepository } from "./json-blog-repository"
