@@ -106,16 +106,6 @@ export function ProductForm({
               required
             />
           </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="body">Product body HTML</Label>
-            <Textarea
-              id="body"
-              name="body"
-              defaultValue={product?.body}
-              rows={7}
-              placeholder="<h2>How it works</h2><p>...</p>"
-            />
-          </div>
 
         </CardContent>
       </Card>
