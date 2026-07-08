@@ -1,7 +1,8 @@
 "use client"
 
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { persist, createJSONStorage } from "zustand/middleware"
+import { cookieStorage } from "./cookie-storage"
 import type { CartItem, ProductImage } from "@/types"
 
 interface CartState {
@@ -108,6 +109,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "cart-storage",
+      storage: createJSONStorage(() => cookieStorage),
       partialize: (state) => ({ items: state.items }),
     }
   )

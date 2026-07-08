@@ -1,7 +1,8 @@
 "use client"
 
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { persist, createJSONStorage } from "zustand/middleware"
+import { cookieStorage } from "./cookie-storage"
 import type { ProductImage } from "@/types"
 
 export interface WishlistItem {
@@ -48,6 +49,7 @@ export const useWishlistStore = create<WishlistState>()(
     }),
     {
       name: "wishlist-storage",
+      storage: createJSONStorage(() => cookieStorage),
       partialize: (state) => ({ items: state.items }),
     }
   )
