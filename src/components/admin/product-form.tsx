@@ -1,13 +1,18 @@
+"use client"
+
+import { useTransition } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { ImageUploader } from "@/components/admin/image-uploader"
 import type { Brand, Category, Product } from "@/types"
 
 interface ProductFormProps {
   action: (formData: FormData) => Promise<void>
+  deleteImageAction?: (productId: string, imageUrl: string) => Promise<void>
   brands: Brand[]
   categories: Category[]
   product?: Product | null
@@ -16,14 +21,29 @@ interface ProductFormProps {
 
 export function ProductForm({
   action,
+  deleteImageAction,
   brands,
   categories,
   product,
   submitLabel,
 }: ProductFormProps) {
   const variant = product?.variants[0]
-  const image = product?.images[0]
   const selectedCategories = new Set(product?.categoryIds ?? [])
+  const [isPending, startTransition] = useTransition()
+
+  const handleDeleteImage = deleteImageAction && product
+    ? (url: string) =>
+        new Promise<void>((resolve, reject) => {
+          startTransition(async () => {
+            try {
+              await deleteImageAction(product.id, url)
+              resolve()
+            } catch (err) {
+              reject(err)
+            }
+          })
+        })
+    : undefined
 
   return (
     <form action={action} className="space-y-6">
@@ -163,22 +183,22 @@ export function ProductForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Image and default variant</CardTitle>
+          <CardTitle>Images</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ImageUploader
+            existing={product?.images ?? []}
+            productId={product?.id}
+            onDeleteImage={handleDeleteImage}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Default variant</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="image_url">Image URL</Label>
-            <Input
-              id="image_url"
-              name="image_url"
-              defaultValue={image?.url}
-              placeholder="/images/site_images/IMG_1706.jpg"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="image_alt">Image alt text</Label>
-            <Input id="image_alt" name="image_alt" defaultValue={image?.alt} />
-          </div>
           <div className="space-y-2">
             <Label htmlFor="variant_name">Variant name</Label>
             <Input
@@ -199,7 +219,7 @@ export function ProductForm({
               name="price"
               type="number"
               min="0"
-              step="0.01"
+              step="any"
               defaultValue={variant ? variant.price / 100 : 0}
               required
             />
@@ -211,7 +231,7 @@ export function ProductForm({
               name="compare_at_price"
               type="number"
               min="0"
-              step="0.01"
+              step="any"
               defaultValue={variant?.compareAtPrice ? variant.compareAtPrice / 100 : ""}
             />
           </div>
@@ -233,7 +253,7 @@ export function ProductForm({
             <Input
               id="variant_options"
               name="variant_options"
-              defaultValue={variant?.options.map((option) => `${option.name}:${option.value}`).join(", ")}
+              defaultValue={variant?.options.map((o) => `${o.name}:${o.value}`).join(", ")}
               placeholder="Size:250ml, Scent:Original"
             />
           </div>
@@ -262,7 +282,9 @@ export function ProductForm({
         <Button asChild variant="outline">
           <Link href="/admin/products">Cancel</Link>
         </Button>
-        <Button type="submit">{submitLabel}</Button>
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Saving…" : submitLabel}
+        </Button>
       </div>
     </form>
   )

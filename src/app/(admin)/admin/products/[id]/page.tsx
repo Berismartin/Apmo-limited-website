@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation"
 import { ProductForm } from "@/components/admin/product-form"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { PageHeader } from "@/components/ui/page-header"
 import {
   deleteProductAction,
+  deleteProductImageAction,
   getAdminCatalogState,
   getAdminProduct,
   updateProductAction,
@@ -18,23 +18,10 @@ export default async function EditAdminProductPage({
   params,
 }: EditAdminProductPageProps) {
   const { id } = await params
-  const [{ configured, categories, brands }, product] = await Promise.all([
+  const [{ categories, brands }, product] = await Promise.all([
     getAdminCatalogState(),
     getAdminProduct(id),
   ])
-
-  if (!configured) {
-    return (
-      <div>
-        <PageHeader title="Edit Product" description="Update a Supabase product." />
-        <Card className="mt-8">
-          <CardContent className="p-6 text-sm text-muted-foreground">
-            Supabase admin credentials are required before editing products.
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
 
   if (!product) notFound()
 
@@ -56,6 +43,7 @@ export default async function EditAdminProductPage({
       <div className="mt-8">
         <ProductForm
           action={updateProductAction}
+          deleteImageAction={deleteProductImageAction}
           brands={brands}
           categories={categories}
           product={product}

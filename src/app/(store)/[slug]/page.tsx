@@ -6,7 +6,7 @@ import { CategoryView } from "./category-view"
 import { BrandView } from "./brand-view"
 import { formatPrice } from "@/lib/utils"
 import { siteConfig } from "@/lib/config"
-import data from "@/data/products.json"
+
 
 interface SlugPageProps {
   params: Promise<{ slug: string }>
@@ -18,13 +18,17 @@ interface SlugPageProps {
 export const dynamicParams = false
 
 export async function generateStaticParams() {
-  const productSlugs = data.products
+  const [{ items: products }, categories, brands] = await Promise.all([
+    productRepository.list(undefined, undefined, { page: 1, limit: 1000 }),
+    categoryRepository.list(),
+    brandRepository.list(),
+  ])
+
+  const productSlugs = products
     .filter((p) => p.status === "active")
     .map((p) => ({ slug: p.slug }))
-  const categorySlugs = data.categories.map((c) => ({ slug: c.slug }))
-  const brandSlugs = (data as { brands?: { slug: string }[] }).brands?.map(
-    (b) => ({ slug: b.slug })
-  ) ?? []
+  const categorySlugs = categories.map((c) => ({ slug: c.slug }))
+  const brandSlugs = brands.map((b) => ({ slug: b.slug }))
 
   return [...productSlugs, ...categorySlugs, ...brandSlugs]
 }

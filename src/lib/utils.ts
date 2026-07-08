@@ -10,9 +10,14 @@ export function formatPrice(
   priceInCents: number,
   currency?: string
 ): string {
+  const currentCurrency = currency ?? siteConfig.currency;
+  const isZeroDecimal = currentCurrency.toUpperCase() === "UGX"; // Extend list if needed
+
   return new Intl.NumberFormat(siteConfig.locale, {
     style: "currency",
-    currency: currency ?? siteConfig.currency,
+    currency: currentCurrency,
+    minimumFractionDigits: isZeroDecimal ? 0 : undefined,
+    maximumFractionDigits: isZeroDecimal ? 0 : undefined,
   }).format(priceInCents / 100)
 }
 

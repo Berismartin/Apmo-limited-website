@@ -27,9 +27,13 @@ export default function RegisterPage() {
     const validation = registerSchema.safeParse(form)
     if (!validation.success) { toast.error(validation.error.issues[0].message); return }
     setLoading(true)
-    const success = register({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password })
-    if (success) { toast.success("Account created!"); router.push("/account") }
-    else { toast.error("An account with this email already exists") }
+    const success = await register({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password })
+    if (success) {
+      toast.success("Account created successfully!")
+      router.push("/admin")
+    } else {
+      toast.error("Email already in use or registration failed")
+    }
     setLoading(false)
   }
 

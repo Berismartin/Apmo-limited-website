@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { createSupabaseAdminClient, isSupabaseAdminConfigured } from "@/lib/supabase/server"
+import { createSupabaseAdminClient } from "@/lib/supabase/server"
 import { slugify } from "@/lib/utils"
 import {
   mapBrand,
@@ -13,6 +13,7 @@ import {
   type SupabaseProductRow,
 } from "@/lib/repositories/supabase-catalog-mappers"
 import type { Brand, Category, Product, ProductOption, ProductStatus } from "@/types"
+import { uploadProductImageFromFormData } from "./product-image-storage"
 
 const adminProductSelect = `
   *,
@@ -22,22 +23,12 @@ const adminProductSelect = `
 `
 
 export interface AdminCatalogState {
-  configured: boolean
   products: Product[]
   categories: Category[]
   brands: Brand[]
 }
 
 export async function getAdminCatalogState(): Promise<AdminCatalogState> {
-  if (!isSupabaseAdminConfigured()) {
-    return {
-      configured: false,
-      products: [],
-      categories: [],
-      brands: [],
-    }
-  }
-
   const supabase = createSupabaseAdminClient()
   const [productsResult, categoriesResult, brandsResult] = await Promise.all([
     supabase
@@ -59,7 +50,6 @@ export async function getAdminCatalogState(): Promise<AdminCatalogState> {
   if (brandsResult.error) throw new Error(brandsResult.error.message)
 
   return {
-    configured: true,
     products: ((productsResult.data ?? []) as SupabaseProductRow[]).map(mapProduct),
     categories: ((categoriesResult.data ?? []) as SupabaseCategoryRow[]).map(mapCategory),
     brands: ((brandsResult.data ?? []) as SupabaseBrandRow[]).map(mapBrand),
@@ -67,8 +57,6 @@ export async function getAdminCatalogState(): Promise<AdminCatalogState> {
 }
 
 export async function getAdminProduct(id: string): Promise<Product | null> {
-  if (!isSupabaseAdminConfigured()) return null
-
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("products")
@@ -98,9 +86,6 @@ export async function updateProductAction(formData: FormData) {
 export async function deleteProductAction(formData: FormData) {
   const productId = String(formData.get("id") ?? "")
   if (!productId) throw new Error("Missing product id")
-  if (!isSupabaseAdminConfigured()) {
-    throw new Error("Supabase admin credentials are not configured")
-  }
 
   const supabase = createSupabaseAdminClient()
   const { error } = await supabase.from("products").delete().eq("id", productId)
@@ -110,11 +95,35 @@ export async function deleteProductAction(formData: FormData) {
   redirect("/admin/products")
 }
 
-async function upsertProduct(formData: FormData, productId?: string) {
-  if (!isSupabaseAdminConfigured()) {
-    throw new Error("Supabase admin credentials are not configured")
+export async function deleteProductImageAction(productId: string, imageUrl: string) {
+  const supabase = createSupabaseAdminClient()
+
+  // Remove the db row
+  const { error } = await supabase
+    .from("product_images")
+    .delete()
+    .eq("product_id", productId)
+    .eq("url", imageUrl)
+  if (error) throw new Error(error.message)
+
+  // Also remove from storage if it lives in our bucket
+  try {
+    const { productImageBucket } = await import("./product-image-storage")
+    const { data } = supabase.storage.from(productImageBucket).getPublicUrl("")
+    const bucketBase = data.publicUrl.replace(/\/$/, "")
+    if (imageUrl.startsWith(bucketBase)) {
+      const storagePath = imageUrl.slice(bucketBase.length + 1)
+      await supabase.storage.from(productImageBucket).remove([storagePath])
+    }
+  } catch {
+    // Non-fatal: storage cleanup failure shouldn't block the db delete
   }
 
+  revalidateCatalog()
+  revalidatePath(`/admin/products/${productId}`)
+}
+
+async function upsertProduct(formData: FormData, productId?: string) {
   const supabase = createSupabaseAdminClient()
   const name = requiredText(formData, "name")
   const slug = slugify(String(formData.get("slug") || name))
@@ -122,7 +131,10 @@ async function upsertProduct(formData: FormData, productId?: string) {
   const status = requiredText(formData, "status") as ProductStatus
   const categoryIds = formData.getAll("category_ids").map(String).filter(Boolean)
   const tags = splitCsv(String(formData.get("tags") ?? ""))
-  const imageUrl = String(formData.get("image_url") ?? "").trim()
+  const uploadedImage = await uploadProductImageFromFormData(formData, slug)
+  const imageUrl = uploadedImage?.url ?? String(formData.get("image_url") ?? "").trim()
+  const imageWidth = uploadedImage?.width ?? null
+  const imageHeight = uploadedImage?.height ?? null
   const imageAlt = String(formData.get("image_alt") ?? name).trim()
   const variantName = String(formData.get("variant_name") || "Default")
   const sku = requiredText(formData, "sku")
@@ -184,6 +196,8 @@ async function upsertProduct(formData: FormData, productId?: string) {
       product_id: id,
       url: imageUrl,
       alt: imageAlt,
+      width: imageWidth,
+      height: imageHeight,
       sort_order: 0,
     })
     if (error) throw new Error(error.message)

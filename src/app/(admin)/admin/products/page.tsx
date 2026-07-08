@@ -8,28 +8,7 @@ import { formatPrice } from "@/lib/utils"
 import { getAdminCatalogState } from "@/lib/admin/product-admin"
 
 export default async function AdminProductsPage() {
-  const { configured, products } = await getAdminCatalogState()
-
-  if (!configured) {
-    return (
-      <div>
-        <PageHeader
-          title="Products"
-          description="Manage Apmo products from Supabase."
-        />
-        <Card className="mt-8">
-          <CardContent className="p-6">
-            <h2 className="font-semibold">Supabase is not configured yet</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-              and `SUPABASE_SERVICE_ROLE_KEY` to your environment, then run the
-              Supabase migration.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  const { products } = await getAdminCatalogState()
 
   return (
     <div>
@@ -89,6 +68,13 @@ export default async function AdminProductsPage() {
                     </tr>
                   )
                 })}
+                {products.length === 0 ? (
+                  <tr>
+                    <td className="px-4 py-8 text-center text-muted-foreground" colSpan={6}>
+                      No products yet.
+                    </td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>

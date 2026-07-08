@@ -14,7 +14,7 @@ import { CartSummary } from "@/components/cart/cart-summary"
 import { formatPrice } from "@/lib/utils"
 import { toast } from "sonner"
 import { siteConfig } from "@/lib/config"
-import type { Order } from "@/types"
+import { submitGuestOrderAction } from "@/lib/actions/checkout"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -79,57 +79,52 @@ export default function CheckoutPage() {
 
     setLoading(true)
 
-    // Create order using demo checkout
+    // Submit order to backend
     const shipping = subtotal >= siteConfig.freeShippingThreshold ? 0 : 599
     const tax = Math.round(subtotal * siteConfig.taxRate)
     const total = subtotal + shipping + tax
-    const orderId = `ORD-${Date.now().toString(36).toUpperCase()}`
 
-    const order: Order = {
-      id: orderId,
-      orderNumber: orderId,
-      items: items.map((item) => ({
-        id: item.id,
-        productId: item.productId,
-        variantId: item.variantId,
-        name: item.name,
-        variantName: item.variantName,
-        sku: "",
-        image: item.image,
-        price: item.price,
-        quantity: item.quantity,
-        total: item.lineTotal,
-      })),
-      status: "processing",
-      paymentStatus: "captured",
-      subtotal,
-      tax,
-      shipping,
-      total,
-      currency: "USD",
-      shippingAddress: {
-        id: "addr-1",
-        type: "shipping",
-        firstName: form.firstName,
-        lastName: form.lastName,
-        line1: form.line1,
-        line2: form.line2 || undefined,
-        city: form.city,
-        state: form.state,
-        postalCode: form.postalCode,
-        country: form.country,
-        isDefault: true,
-      },
-      customerEmail: form.email,
-      customerName: `${form.firstName} ${form.lastName}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    try {
+      const result = await submitGuestOrderAction({
+        customerEmail: form.email,
+        customerName: `${form.firstName} ${form.lastName}`,
+        shippingAddress: {
+          id: "addr-1",
+          type: "shipping",
+          firstName: form.firstName,
+          lastName: form.lastName,
+          line1: form.line1,
+          line2: form.line2 || undefined,
+          city: form.city,
+          state: form.state,
+          postalCode: form.postalCode,
+          country: form.country,
+          isDefault: true,
+        },
+        subtotal,
+        tax,
+        shipping,
+        total,
+        items: items.map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          name: item.name,
+          variantName: item.variantName,
+          sku: "",
+          image: item.image,
+          price: item.price,
+          quantity: item.quantity,
+          total: item.lineTotal,
+        })),
+      })
+
+      clearCart()
+      toast.success("Order placed successfully!")
+      router.push(`/checkout/success?order_id=${result.orderId}`)
+    } catch (error: any) {
+      toast.error(error.message || "Failed to place order")
+      setLoading(false)
     }
-
-    addOrder(order)
-    clearCart()
-    toast.success("Order placed successfully!")
-    router.push(`/checkout/success?order_id=${orderId}`)
   }
 
   return (

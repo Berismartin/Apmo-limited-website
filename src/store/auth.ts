@@ -2,58 +2,20 @@
 
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import type { User, Address } from "@/types"
 
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
 
-  login: (email: string, password: string) => boolean
-  register: (data: { firstName: string; lastName: string; email: string; password: string }) => boolean
-  logout: () => void
+  login: (email: string, password: string) => Promise<boolean>
+  register: (data: { firstName: string; lastName: string; email: string; password: string }) => Promise<boolean>
+  logout: () => Promise<void>
   updateProfile: (data: Partial<Pick<User, "firstName" | "lastName" | "email">>) => void
   addAddress: (address: Omit<Address, "id">) => void
   removeAddress: (id: string) => void
 }
-
-// Demo users — in production, this comes from your auth provider
-const DEMO_USERS: Array<User & { password: string }> = [
-  {
-    id: "user-1",
-    email: "admin@example.com",
-    firstName: "Admin",
-    lastName: "User",
-    role: "admin",
-    addresses: [],
-    createdAt: "2025-01-01T00:00:00Z",
-    updatedAt: "2025-01-01T00:00:00Z",
-    password: "password123",
-  },
-  {
-    id: "user-2",
-    email: "demo@example.com",
-    firstName: "Jane",
-    lastName: "Smith",
-    role: "customer",
-    addresses: [
-      {
-        id: "addr-demo-1",
-        type: "shipping",
-        firstName: "Jane",
-        lastName: "Smith",
-        line1: "123 Main Street",
-        city: "San Francisco",
-        state: "CA",
-        postalCode: "94105",
-        country: "US",
-        isDefault: true,
-      },
-    ],
-    createdAt: "2025-01-15T00:00:00Z",
-    updatedAt: "2025-01-15T00:00:00Z",
-    password: "password123",
-  },
-]
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -61,38 +23,80 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
 
-      login: (email, password) => {
-        const found = DEMO_USERS.find(
-          (u) => u.email === email && u.password === password
-        )
-        if (found) {
-          const { password: _, ...user } = found
+      login: async (email, password) => {
+        try {
+          const supabase = createSupabaseBrowserClient()
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+          
+          if (error || !data.user) return false
+
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", data.user.id)
+            .single()
+
+          const user: User = {
+            id: data.user.id,
+            email: data.user.email ?? email,
+            firstName: profile?.first_name ?? "",
+            lastName: profile?.last_name ?? "",
+            role: profile?.role ?? "customer",
+            addresses: [],
+            createdAt: data.user.created_at,
+            updatedAt: data.user.updated_at ?? data.user.created_at,
+          }
+
           set({ user, isAuthenticated: true })
           return true
+        } catch {
+          return false
         }
-        return false
       },
 
-      register: (data) => {
-        const exists = DEMO_USERS.some((u) => u.email === data.email)
-        if (exists) return false
+      register: async (data) => {
+        try {
+          const supabase = createSupabaseBrowserClient()
+          const { data: authData, error } = await supabase.auth.signUp({
+            email: data.email,
+            password: data.password,
+            options: {
+              data: {
+                first_name: data.firstName,
+                last_name: data.lastName,
+              }
+            }
+          })
+          
+          if (error || !authData.user) return false
 
-        const newUser: User = {
-          id: `user-${Date.now()}`,
-          email: data.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          role: "customer",
-          addresses: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          const user: User = {
+            id: authData.user.id,
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            role: "customer",
+            addresses: [],
+            createdAt: authData.user.created_at,
+            updatedAt: authData.user.updated_at ?? authData.user.created_at,
+          }
+
+          set({ user, isAuthenticated: true })
+          return true
+        } catch {
+          return false
         }
-
-        set({ user: newUser, isAuthenticated: true })
-        return true
       },
 
-      logout: () => set({ user: null, isAuthenticated: false }),
+      logout: async () => {
+        try {
+          const supabase = createSupabaseBrowserClient()
+          await supabase.auth.signOut()
+        } catch (err) {
+          console.error(err)
+        }
+        set({ user: null, isAuthenticated: false })
+      },
 
       updateProfile: (data) => {
         const user = get().user

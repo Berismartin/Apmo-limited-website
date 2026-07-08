@@ -31,7 +31,6 @@ export const infoLinks: NavItem[] = [
   { name: "Contact", href: "/contact" },
   { name: "FAQ", href: "/faq" },
   { name: "Blog", href: "/blog" },
-  { name: "Pages", href: "/pages" },
 ]
 
 export const mobileMenuSections: NavSection[] = [
