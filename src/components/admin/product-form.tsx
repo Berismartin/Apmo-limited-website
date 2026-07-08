@@ -116,48 +116,7 @@ export function ProductForm({
               placeholder="<h2>How it works</h2><p>...</p>"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
-            <Input
-              id="tags"
-              name="tags"
-              defaultValue={product?.tags.join(", ")}
-              placeholder="detangler, curls, spray"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="rating">Rating</Label>
-              <Input
-                id="rating"
-                name="rating"
-                type="number"
-                min="0"
-                max="5"
-                step="0.1"
-                defaultValue={product?.rating ?? 0}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="review_count">Review count</Label>
-              <Input
-                id="review_count"
-                name="review_count"
-                type="number"
-                min="0"
-                defaultValue={product?.reviewCount ?? 0}
-              />
-            </div>
-          </div>
-          <label className="flex items-center gap-2 text-sm font-medium md:col-span-2">
-            <input
-              type="checkbox"
-              name="featured"
-              defaultChecked={product?.featured ?? false}
-              className="h-4 w-4 rounded border-input"
-            />
-            Featured product
-          </label>
+
         </CardContent>
       </Card>
 
@@ -237,7 +196,7 @@ export function ProductForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="currency">Currency</Label>
-            <Input id="currency" name="currency" defaultValue={variant?.currency ?? "USD"} required />
+            <Input id="currency" name="currency" defaultValue={variant?.currency ?? "UGX"} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="inventory_quantity">Inventory quantity</Label>

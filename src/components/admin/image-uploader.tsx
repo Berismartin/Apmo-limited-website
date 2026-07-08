@@ -4,7 +4,6 @@ import Image from "next/image"
 import { useRef, useState, useCallback } from "react"
 import { Upload, X, ImageIcon, Loader2 } from "lucide-react"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import type { ProductImage } from "@/types"
 
 interface ImageUploaderProps {
@@ -178,26 +177,6 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
             </div>
           </div>
         )}
-      </div>
-
-      {/* ── Manual URL fallback ────────────────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="image_url">Or enter image URL</Label>
-          <Input
-            id="image_url"
-            name="image_url"
-            placeholder="/images/site_images/IMG_1706.jpg"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="image_alt">Image alt text</Label>
-          <Input
-            id="image_alt"
-            name="image_alt"
-            defaultValue={existing[0]?.alt ?? ""}
-          />
-        </div>
       </div>
     </div>
   )

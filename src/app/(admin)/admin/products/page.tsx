@@ -1,5 +1,6 @@
+import Image from "next/image"
 import Link from "next/link"
-import { PackagePlus } from "lucide-react"
+import { PackagePlus, ImageIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -35,32 +36,51 @@ export default async function AdminProductsPage() {
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Price</th>
                   <th className="px-4 py-3 font-medium">Inventory</th>
-                  <th className="px-4 py-3 font-medium">Featured</th>
                   <th className="px-4 py-3 font-medium"></th>
                 </tr>
               </thead>
               <tbody>
                 {products.map((product) => {
                   const variant = product.variants[0]
+                  const image = product.images[0]
                   return (
                     <tr key={product.id} className="border-b last:border-0">
-                      <td className="px-4 py-4">
-                        <div className="font-medium">{product.name}</div>
-                        <div className="text-xs text-muted-foreground">/{product.slug}</div>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {/* Product thumbnail */}
+                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-rose-100 bg-rose-50">
+                            {image ? (
+                              <Image
+                                src={image.url}
+                                alt={image.alt}
+                                fill
+                                sizes="48px"
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center">
+                                <ImageIcon className="h-5 w-5 text-rose-200" />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-medium">{product.name}</div>
+                            <div className="text-xs text-muted-foreground">/{product.slug}</div>
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-3">
                         <Badge variant={product.status === "active" ? "default" : "secondary"}>
                           {product.status}
                         </Badge>
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-3">
                         {variant ? formatPrice(variant.price, variant.currency) : "-"}
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-3">
                         {variant?.inventory.quantity ?? 0}
                       </td>
-                      <td className="px-4 py-4">{product.featured ? "Yes" : "No"}</td>
-                      <td className="px-4 py-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <Button asChild size="sm" variant="outline">
                           <Link href={`/admin/products/${product.id}`}>Edit</Link>
                         </Button>
@@ -70,7 +90,7 @@ export default async function AdminProductsPage() {
                 })}
                 {products.length === 0 ? (
                   <tr>
-                    <td className="px-4 py-8 text-center text-muted-foreground" colSpan={6}>
+                    <td className="px-4 py-8 text-center text-muted-foreground" colSpan={5}>
                       No products yet.
                     </td>
                   </tr>
