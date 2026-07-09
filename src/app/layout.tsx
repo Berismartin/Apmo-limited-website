@@ -21,7 +21,33 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: siteConfig.name,
+    title: {
+      default: `${siteConfig.name} — ${siteConfig.tagline}`,
+      template: `%s | ${siteConfig.name}`,
+    },
+    description: siteConfig.description,
     locale: siteConfig.locale.replace("-", "_"),
+    url: siteConfig.url,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: {
+      default: `${siteConfig.name} — ${siteConfig.tagline}`,
+      template: `%s | ${siteConfig.name}`,
+    },
+    description: siteConfig.description,
+    creator: siteConfig.social.twitter ? `@${siteConfig.social.twitter.split("/").pop()}` : undefined,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 }
 
