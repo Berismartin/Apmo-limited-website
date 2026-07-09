@@ -9,6 +9,7 @@ import {
   getAdminProduct,
   updateProductAction,
 } from "@/lib/admin/product-admin"
+import { DeleteProductDialog } from "@/components/admin/delete-product-dialog"
 
 interface EditAdminProductPageProps {
   params: Promise<{ id: string }>
@@ -32,12 +33,11 @@ export default async function EditAdminProductPage({
           title={`Edit ${product.name}`}
           description="Update product details, category placement, imagery, pricing, and inventory."
         />
-        <form action={deleteProductAction}>
-          <input type="hidden" name="id" value={product.id} />
-          <Button type="submit" variant="destructive">
-            Delete
-          </Button>
-        </form>
+        <DeleteProductDialog
+          productId={product.id}
+          productName={product.name}
+          deleteAction={deleteProductAction}
+        />
       </div>
 
       <div className="mt-8">

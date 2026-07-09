@@ -45,8 +45,14 @@ export function ProductForm({
         })
     : undefined
 
+  const handleSubmit = (formData: FormData) => {
+    startTransition(async () => {
+      await action(formData)
+    })
+  }
+
   return (
-    <form action={action} className="space-y-6">
+    <form action={handleSubmit} className="space-y-6">
       {product ? <input type="hidden" name="id" value={product.id} /> : null}
 
       <Card>

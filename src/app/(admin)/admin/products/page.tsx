@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PageHeader } from "@/components/ui/page-header"
 import { formatPrice } from "@/lib/utils"
-import { getAdminCatalogState } from "@/lib/admin/product-admin"
+import { getAdminCatalogState, deleteProductAction } from "@/lib/admin/product-admin"
+import { DeleteProductDialog } from "@/components/admin/delete-product-dialog"
 
 export default async function AdminProductsPage() {
   const { products } = await getAdminCatalogState()
@@ -81,9 +82,19 @@ export default async function AdminProductsPage() {
                         {variant?.inventory.quantity ?? 0}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/admin/products/${product.id}`}>Edit</Link>
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={`/admin/products/${product.id}`}>Edit</Link>
+                          </Button>
+                          <DeleteProductDialog
+                            productId={product.id}
+                            productName={product.name}
+                            deleteAction={deleteProductAction}
+                            triggerNode={
+                              <Button size="sm" variant="destructive" />
+                            }
+                          />
+                        </div>
                       </td>
                     </tr>
                   )

@@ -1,3 +1,6 @@
+"use client"
+
+import { useTransition } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,9 +16,16 @@ interface OrderFormProps {
 
 export function OrderForm({ action, order, submitLabel }: OrderFormProps) {
   const item = order?.items[0]
+  const [isPending, startTransition] = useTransition()
+
+  const handleSubmit = (formData: FormData) => {
+    startTransition(async () => {
+      await action(formData)
+    })
+  }
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={handleSubmit} className="space-y-6">
       {order ? <input type="hidden" name="id" value={order.id} /> : null}
 
       <Card>
@@ -218,7 +228,9 @@ export function OrderForm({ action, order, submitLabel }: OrderFormProps) {
         <Button asChild variant="outline">
           <Link href="/admin/orders">Cancel</Link>
         </Button>
-        <Button type="submit">{submitLabel}</Button>
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Saving…" : submitLabel}
+        </Button>
       </div>
     </form>
   )

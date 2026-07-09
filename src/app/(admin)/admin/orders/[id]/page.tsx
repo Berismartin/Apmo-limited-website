@@ -7,6 +7,7 @@ import {
   getAdminOrder,
   updateOrderAction,
 } from "@/lib/admin/order-admin"
+import { DeleteOrderDialog } from "@/components/admin/delete-order-dialog"
 
 interface EditAdminOrderPageProps {
   params: Promise<{ id: string }>
@@ -27,12 +28,11 @@ export default async function EditAdminOrderPage({
           title={`Edit ${order.orderNumber}`}
           description="Update fulfilment status, payment status, customer details, totals, and line item."
         />
-        <form action={deleteOrderAction}>
-          <input type="hidden" name="id" value={order.id} />
-          <Button type="submit" variant="destructive">
-            Delete
-          </Button>
-        </form>
+        <DeleteOrderDialog
+          orderId={order.id}
+          orderName={`Order ${order.orderNumber}`}
+          deleteAction={deleteOrderAction}
+        />
       </div>
 
       <div className="mt-8">

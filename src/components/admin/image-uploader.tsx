@@ -6,6 +6,60 @@ import { Upload, X, ImageIcon, Loader2 } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import type { ProductImage } from "@/types"
 
+async function compressImage(file: File): Promise<File> {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new window.Image()
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return resolve(file)
+
+        let width = img.width
+        let height = img.height
+        const max_size = 1600
+
+        if (width > height) {
+          if (width > max_size) {
+            height *= max_size / width
+            width = max_size
+          }
+        } else {
+          if (height > max_size) {
+            width *= max_size / height
+            height = max_size
+          }
+        }
+
+        canvas.width = width
+        canvas.height = height
+        ctx.drawImage(img, 0, 0, width, height)
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), {
+                type: "image/webp",
+                lastModified: Date.now(),
+              })
+              resolve(newFile)
+            } else {
+              resolve(file)
+            }
+          },
+          "image/webp",
+          0.82
+        )
+      }
+      img.onerror = () => resolve(file)
+      img.src = e.target?.result as string
+    }
+    reader.onerror = () => resolve(file)
+    reader.readAsDataURL(file)
+  })
+}
+
 interface ImageUploaderProps {
   existing?: ProductImage[]
   productId?: string
@@ -17,18 +71,26 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
   const [isDragging, setIsDragging] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null)
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) return
-    setFileName(file.name)
-    const reader = new FileReader()
-    reader.onload = (e) => setPreview(e.target?.result as string)
-    reader.readAsDataURL(file)
-    // Sync to the hidden file input so the form picks it up
-    const dt = new DataTransfer()
-    dt.items.add(file)
-    if (inputRef.current) inputRef.current.files = dt.files
+    setIsProcessing(true)
+
+    try {
+      const processedFile = await compressImage(file)
+      setFileName(processedFile.name)
+      const reader = new FileReader()
+      reader.onload = (e) => setPreview(e.target?.result as string)
+      reader.readAsDataURL(processedFile)
+      // Sync to the hidden file input so the form picks it up
+      const dt = new DataTransfer()
+      dt.items.add(processedFile)
+      if (inputRef.current) inputRef.current.files = dt.files
+    } finally {
+      setIsProcessing(false)
+    }
   }, [])
 
   const handleDrop = useCallback(
@@ -161,7 +223,9 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
             }`}
           >
             <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${isDragging ? "bg-rose-100" : "bg-rose-100/60"}`}>
-              {isDragging ? (
+              {isProcessing ? (
+                <Loader2 className="h-6 w-6 animate-spin text-rose-600" />
+              ) : isDragging ? (
                 <ImageIcon className="h-6 w-6 text-rose-600" />
               ) : (
                 <Upload className="h-6 w-6 text-rose-400" />
@@ -169,7 +233,7 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
             </div>
             <div>
               <p className="text-sm font-medium">
-                {isDragging ? "Drop to upload" : "Drag & drop or click to browse"}
+                {isProcessing ? "Processing image..." : isDragging ? "Drop to upload" : "Drag & drop or click to browse"}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 PNG, JPG, WebP or GIF · converted to WebP automatically
