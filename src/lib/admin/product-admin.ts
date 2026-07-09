@@ -13,7 +13,7 @@ import {
   type SupabaseProductRow,
 } from "@/lib/repositories/supabase-catalog-mappers"
 import type { Brand, Category, Product, ProductOption, ProductStatus } from "@/types"
-import { uploadProductImageFromFormData } from "./product-image-storage"
+import { uploadProductImagesFromFormData } from "./product-image-storage"
 
 const adminProductSelect = `
   *,
@@ -131,11 +131,9 @@ async function upsertProduct(formData: FormData, productId?: string) {
   const status = requiredText(formData, "status") as ProductStatus
   const categoryIds = formData.getAll("category_ids").map(String).filter(Boolean)
   const tags = splitCsv(String(formData.get("tags") ?? ""))
-  const uploadedImage = await uploadProductImageFromFormData(formData, slug)
-  const imageUrl = uploadedImage?.url ?? String(formData.get("image_url") ?? "").trim()
-  const imageWidth = uploadedImage?.width ?? null
-  const imageHeight = uploadedImage?.height ?? null
-  const imageAlt = String(formData.get("image_alt") ?? name).trim()
+  const uploadedImages = await uploadProductImagesFromFormData(formData, slug)
+  const existingImageUrls = formData.getAll("existing_image_url").map(String).filter(Boolean)
+  const externalImageUrl = String(formData.get("image_url") ?? "").trim()
   const variantName = String(formData.get("variant_name") || "Default")
   const sku = requiredText(formData, "sku")
   const price = parseMoneyToCents(String(formData.get("price") ?? "0"))
@@ -175,6 +173,12 @@ async function upsertProduct(formData: FormData, productId?: string) {
   if (productResult.error) throw new Error(productResult.error.message)
   const id = productResult.data.id as string
 
+  const { data: currentImages } = await supabase
+    .from("product_images")
+    .select("*")
+    .eq("product_id", id)
+  const currentImagesMap = new Map(currentImages?.map((img) => [img.url, img]) ?? [])
+
   await Promise.all([
     supabase.from("product_categories").delete().eq("product_id", id),
     supabase.from("product_images").delete().eq("product_id", id),
@@ -191,16 +195,44 @@ async function upsertProduct(formData: FormData, productId?: string) {
     if (error) throw new Error(error.message)
   }
 
-  if (imageUrl) {
-    const { error } = await supabase.from("product_images").insert({
+  const imagesToInsert = [
+    ...existingImageUrls.map((url, idx) => {
+      const current = currentImagesMap.get(url)
+      return {
+        product_id: id,
+        url,
+        alt: current?.alt ?? name,
+        width: current?.width ?? null,
+        height: current?.height ?? null,
+        sort_order: idx,
+      }
+    }),
+    ...uploadedImages.map((img, idx) => ({
       product_id: id,
-      url: imageUrl,
-      alt: imageAlt,
-      width: imageWidth,
-      height: imageHeight,
-      sort_order: 0,
+      url: img.url,
+      alt: name,
+      width: img.width ?? null,
+      height: img.height ?? null,
+      sort_order: existingImageUrls.length + idx,
+    })),
+  ]
+
+  if (externalImageUrl) {
+    imagesToInsert.push({
+      product_id: id,
+      url: externalImageUrl,
+      alt: name,
+      width: null,
+      height: null,
+      sort_order: imagesToInsert.length,
     })
-    if (error) throw new Error(error.message)
+  }
+
+  if (imagesToInsert.length > 0) {
+    const { error: insertError } = await supabase
+      .from("product_images")
+      .insert(imagesToInsert)
+    if (insertError) throw new Error(insertError.message)
   }
 
   const { error: variantError } = await supabase.from("product_variants").insert({

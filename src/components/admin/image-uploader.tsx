@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useRef, useState, useCallback } from "react"
+import { useRef, useState, useCallback, useEffect } from "react"
 import { Upload, X, ImageIcon, Loader2 } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import type { ProductImage } from "@/types"
@@ -69,25 +69,43 @@ interface ImageUploaderProps {
 export function ImageUploader({ existing = [], productId, onDeleteImage }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [fileName, setFileName] = useState<string | null>(null)
+  const [previews, setPreviews] = useState<{ url: string; name: string }[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null)
+  const dataTransferRef = useRef<DataTransfer | null>(null)
 
-  const handleFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) return
+  useEffect(() => {
+    dataTransferRef.current = new DataTransfer()
+    return () => {
+      // Cleanup object URLs on unmount
+      previews.forEach((p) => URL.revokeObjectURL(p.url))
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleFiles = useCallback(async (files: FileList | File[]) => {
+    if (!files.length) return
     setIsProcessing(true)
 
     try {
-      const processedFile = await compressImage(file)
-      setFileName(processedFile.name)
-      const reader = new FileReader()
-      reader.onload = (e) => setPreview(e.target?.result as string)
-      reader.readAsDataURL(processedFile)
-      // Sync to the hidden file input so the form picks it up
-      const dt = new DataTransfer()
-      dt.items.add(processedFile)
-      if (inputRef.current) inputRef.current.files = dt.files
+      if (!dataTransferRef.current) dataTransferRef.current = new DataTransfer()
+      
+      const newPreviews: { url: string; name: string }[] = []
+      
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/")) continue
+        
+        const processedFile = await compressImage(file)
+        dataTransferRef.current.items.add(processedFile)
+        
+        const url = URL.createObjectURL(processedFile)
+        newPreviews.push({ url, name: processedFile.name })
+      }
+
+      setPreviews(prev => [...prev, ...newPreviews])
+      
+      if (inputRef.current) {
+        inputRef.current.files = dataTransferRef.current.files
+      }
     } finally {
       setIsProcessing(false)
     }
@@ -97,21 +115,36 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault()
       setIsDragging(false)
-      const file = e.dataTransfer.files?.[0]
-      if (file) handleFile(file)
+      if (e.dataTransfer.files?.length) {
+        handleFiles(e.dataTransfer.files)
+      }
     },
-    [handleFile]
+    [handleFiles]
   )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) handleFile(file)
+    if (e.target.files?.length) {
+      handleFiles(e.target.files)
+    }
   }
 
-  const clearPreview = () => {
-    setPreview(null)
-    setFileName(null)
-    if (inputRef.current) inputRef.current.value = ""
+  const removePreview = (index: number) => {
+    setPreviews(prev => {
+      const copy = [...prev]
+      URL.revokeObjectURL(copy[index].url)
+      copy.splice(index, 1)
+      return copy
+    })
+    
+    if (dataTransferRef.current && inputRef.current) {
+      const dt = new DataTransfer()
+      const files = dataTransferRef.current.files
+      for (let i = 0; i < files.length; i++) {
+        if (i !== index) dt.items.add(files[i])
+      }
+      dataTransferRef.current = dt
+      inputRef.current.files = dt.files
+    }
   }
 
   const handleDelete = async (url: string) => {
@@ -133,6 +166,7 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
           <div className="flex flex-wrap gap-3">
             {existing.map((img) => (
               <div key={img.url} className="group relative h-24 w-24 overflow-hidden rounded-xl border border-rose-100 bg-rose-50 shadow-sm">
+                <input type="hidden" name="existing_image_url" value={img.url} />
                 <Image
                   src={img.url}
                   alt={img.alt}
@@ -166,7 +200,7 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
       {/* ── Drag-and-drop upload zone ──────────────────────────────── */}
       <div className="space-y-2">
         <Label htmlFor="image_file">
-          {existing.length > 0 ? "Replace / add image" : "Product image"}
+          {existing.length > 0 ? "Upload new images" : "Product images"}
         </Label>
 
         {/* Hidden real file input consumed by the Server Action */}
@@ -176,71 +210,70 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
           name="image_file"
           type="file"
           accept="image/png,image/jpeg,image/webp,image/gif"
+          multiple
           className="sr-only"
           onChange={handleChange}
-          aria-label="Upload product image"
+          aria-label="Upload product images"
         />
 
-        {preview ? (
-          /* Preview card */
-          <div className="relative overflow-hidden rounded-xl border border-rose-200 bg-rose-50">
-            <div className="relative h-52 w-full">
-              <Image
-                src={preview}
-                alt="Upload preview"
-                fill
-                sizes="100vw"
-                className="object-contain p-2"
-              />
-            </div>
-            <div className="flex items-center justify-between border-t border-rose-100 bg-white px-4 py-2.5">
-              <span className="truncate text-xs text-muted-foreground">{fileName}</span>
-              <button
-                type="button"
-                onClick={clearPreview}
-                className="ml-2 shrink-0 rounded-lg p-1 text-muted-foreground transition-colors hover:bg-rose-50 hover:text-rose-700"
-                aria-label="Remove selected image"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* Drop zone */
-          <div
-            role="button"
-            tabIndex={0}
-            aria-label="Upload image – click or drag and drop"
-            onClick={() => inputRef.current?.click()}
-            onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors select-none ${
-              isDragging
-                ? "border-rose-400 bg-rose-50 text-rose-700"
-                : "border-rose-200 bg-rose-50/40 text-muted-foreground hover:border-rose-300 hover:bg-rose-50"
-            }`}
-          >
-            <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${isDragging ? "bg-rose-100" : "bg-rose-100/60"}`}>
-              {isProcessing ? (
-                <Loader2 className="h-6 w-6 animate-spin text-rose-600" />
-              ) : isDragging ? (
-                <ImageIcon className="h-6 w-6 text-rose-600" />
-              ) : (
-                <Upload className="h-6 w-6 text-rose-400" />
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-medium">
-                {isProcessing ? "Processing image..." : isDragging ? "Drop to upload" : "Drag & drop or click to browse"}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                PNG, JPG, WebP or GIF · converted to WebP automatically
-              </p>
-            </div>
+        {previews.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-3">
+            {previews.map((preview, idx) => (
+              <div key={preview.url} className="relative h-24 w-24 overflow-hidden rounded-xl border border-rose-200 bg-rose-50 shadow-sm">
+                <Image
+                  src={preview.url}
+                  alt={preview.name}
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => removePreview(idx)}
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/80 text-rose-700 shadow-sm backdrop-blur-sm transition-colors hover:bg-rose-100"
+                  aria-label="Remove image"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
           </div>
         )}
+
+        {/* Drop zone */}
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Upload images – click or drag and drop"
+          onClick={() => inputRef.current?.click()}
+          onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors select-none ${
+            isDragging
+              ? "border-rose-400 bg-rose-50 text-rose-700"
+              : "border-rose-200 bg-rose-50/40 text-muted-foreground hover:border-rose-300 hover:bg-rose-50"
+          }`}
+        >
+          <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${isDragging ? "bg-rose-100" : "bg-rose-100/60"}`}>
+            {isProcessing ? (
+              <Loader2 className="h-6 w-6 animate-spin text-rose-600" />
+            ) : isDragging ? (
+              <ImageIcon className="h-6 w-6 text-rose-600" />
+            ) : (
+              <Upload className="h-6 w-6 text-rose-400" />
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-medium">
+              {isProcessing ? "Processing images..." : isDragging ? "Drop images to upload" : "Drag & drop images or click to browse"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              PNG, JPG, WebP or GIF · converted to WebP automatically
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
