@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import { useRef, useState, useCallback, useEffect } from "react"
 import { Upload, X, ImageIcon, Loader2 } from "lucide-react"
 import { Label } from "@/components/ui/label"
@@ -167,7 +167,7 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
             {existing.map((img) => (
               <div key={img.url} className="group relative h-24 w-24 overflow-hidden rounded-xl border border-rose-100 bg-rose-50 shadow-sm">
                 <input type="hidden" name="existing_image_url" value={img.url} />
-                <Image
+                <AppImage
                   src={img.url}
                   alt={img.alt}
                   fill
@@ -220,7 +220,7 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
           <div className="mb-4 flex flex-wrap gap-3">
             {previews.map((preview, idx) => (
               <div key={preview.url} className="relative h-24 w-24 overflow-hidden rounded-xl border border-rose-200 bg-rose-50 shadow-sm">
-                <Image
+                <AppImage
                   src={preview.url}
                   alt={preview.name}
                   fill

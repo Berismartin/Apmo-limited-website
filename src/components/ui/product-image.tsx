@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
+import { shouldUnoptimizeImage } from "@/lib/images"
 import { cn } from "@/lib/utils"
 
 interface ProductImageProps {
@@ -37,6 +38,7 @@ export function ProductImage({
       height={!fill ? height : undefined}
       sizes={sizes}
       priority={priority}
+      unoptimized={shouldUnoptimizeImage(imgSrc)}
       className={cn("object-cover", className)}
       onError={() => setImgSrc(PLACEHOLDER_IMAGE)}
     />

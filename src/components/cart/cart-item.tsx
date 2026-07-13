@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { QuantitySelector } from "@/components/products/quantity-selector"
@@ -27,7 +27,7 @@ export function CartItem({ item }: CartItemProps) {
         href={`/${item.slug}`}
         className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-neutral-100 sm:h-20 sm:w-20"
       >
-        <Image
+        <AppImage
           src={imgSrc}
           alt={item.image?.alt ?? item.name}
           fill

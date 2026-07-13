@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import type { ProductImage } from "@/types"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import { cn } from "@/lib/utils"
@@ -19,7 +19,7 @@ export function ProductGallery({ images, productName = "Product" }: ProductGalle
     <div className="flex flex-col gap-4">
       {/* Main image */}
       <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
-        <Image
+        <AppImage
           src={currentImage?.url ?? PLACEHOLDER_IMAGE}
           alt={currentImage?.alt ?? productName}
           fill
@@ -44,7 +44,7 @@ export function ProductGallery({ images, productName = "Product" }: ProductGalle
               )}
               aria-label={`View image ${index + 1}`}
             >
-              <Image
+              <AppImage
                 src={image.url ?? PLACEHOLDER_IMAGE}
                 alt={image.alt ?? `${productName} thumbnail ${index + 1}`}
                 fill

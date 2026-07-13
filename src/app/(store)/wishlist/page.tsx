@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import { Heart, X } from "lucide-react"
 import { PageHeader } from "@/components/ui/page-header"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -52,7 +52,7 @@ export default function WishlistPage() {
           <div key={item.productId} className="group relative">
             <Link href={`/${item.slug}`} className="block">
               <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
-                <Image
+                <AppImage
                   src={item.image?.url ?? PLACEHOLDER_IMAGE}
                   alt={item.image?.alt ?? item.name}
                   fill

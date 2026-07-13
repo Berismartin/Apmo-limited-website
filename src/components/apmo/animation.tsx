@@ -1,6 +1,7 @@
 "use client"
 
 import Image, { type ImageProps } from "next/image"
+import { shouldUnoptimizeImage } from "@/lib/images"
 import Link from "next/link"
 import Lenis from "lenis"
 import {
@@ -321,6 +322,7 @@ export function ImageReveal({
         <Image
           {...props}
           alt={alt}
+          unoptimized={props.unoptimized ?? shouldUnoptimizeImage(props.src)}
           className={cn("object-cover transition-transform duration-700", imageClassName)}
         />
       </motion.div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import { PageHeader } from "@/components/ui/page-header"
 import { Pagination } from "@/components/products/pagination"
 import { blogRepository } from "@/lib/repositories"
@@ -48,7 +48,7 @@ export default async function BlogIndex({ searchParams }: BlogIndexProps) {
           <Link key={post.id} href={`/blog/${post.slug}`} className="group">
             {/* 16:10 thumb */}
             <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-neutral-100">
-              <Image
+              <AppImage
                 src={post.coverImage?.url ?? PLACEHOLDER_IMAGE}
                 alt={post.coverImage?.alt ?? post.title}
                 fill

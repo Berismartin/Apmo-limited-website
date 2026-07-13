@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import { Heart } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { StarRating } from "@/components/products/star-rating"
@@ -54,7 +54,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/${product.slug}`} className="group">
       <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
-        <Image
+        <AppImage
           src={image?.url ?? PLACEHOLDER_IMAGE}
           alt={image?.alt ?? product.name}
           fill

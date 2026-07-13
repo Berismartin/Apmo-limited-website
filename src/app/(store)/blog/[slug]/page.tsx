@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import { notFound } from "next/navigation"
 import {
   Breadcrumb,
@@ -117,7 +117,7 @@ export default async function BlogPostPage({ params }: PostProps) {
 
         {/* 16:10 cover */}
         <div className="relative mt-8 aspect-[16/10] overflow-hidden rounded-lg bg-neutral-100">
-          <Image
+          <AppImage
             src={post.coverImage?.url ?? PLACEHOLDER_IMAGE}
             alt={post.coverImage?.alt ?? post.title}
             fill

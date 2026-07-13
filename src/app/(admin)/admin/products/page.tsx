@@ -1,4 +1,4 @@
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import Link from "next/link"
 import { PackagePlus, ImageIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -51,7 +51,7 @@ export default async function AdminProductsPage() {
                           {/* Product thumbnail */}
                           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-rose-100 bg-rose-50">
                             {image ? (
-                              <Image
+                              <AppImage
                                 src={image.url}
                                 alt={image.alt}
                                 fill

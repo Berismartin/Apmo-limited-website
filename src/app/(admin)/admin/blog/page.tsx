@@ -1,4 +1,4 @@
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import Link from "next/link"
 import { FilePlus, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -53,7 +53,7 @@ export default async function AdminBlogPage() {
                       <div className="flex items-center gap-3">
                         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-rose-100 bg-rose-50">
                           {post.coverImage ? (
-                            <Image
+                            <AppImage
                               src={post.coverImage.url}
                               alt={post.coverImage.alt}
                               fill

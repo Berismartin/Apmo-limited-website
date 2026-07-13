@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import { useRecentlyViewedStore } from "@/store/recently-viewed"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import { formatPrice } from "@/lib/utils"
@@ -32,7 +32,7 @@ export function RecentlyViewed({ excludeProductId }: RecentlyViewedProps) {
             className="group shrink-0"
           >
             <div className="relative h-32 w-32 overflow-hidden rounded-lg bg-neutral-100">
-              <Image
+              <AppImage
                 src={item.imageUrl || PLACEHOLDER_IMAGE}
                 alt={item.imageAlt || item.name}
                 fill

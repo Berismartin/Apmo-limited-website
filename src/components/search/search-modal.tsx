@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react"
 import Link from "next/link"
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import { Search, X, ArrowRight } from "lucide-react"
 import { StarRating } from "@/components/products/star-rating"
 import { formatPrice } from "@/lib/utils"
@@ -139,7 +139,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       className="flex items-center gap-4 rounded-lg p-3 transition-colors hover:bg-neutral-50"
                     >
                       <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-neutral-100">
-                        <Image
+                        <AppImage
                           src={product.images[0]?.url ?? PLACEHOLDER_IMAGE}
                           alt={product.images[0]?.alt ?? product.name}
                           fill
