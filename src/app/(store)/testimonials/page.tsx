@@ -4,7 +4,8 @@ import Link from "next/link"
 import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { imageAssets, testimonials } from "@/components/apmo/data"
+import { imageAssets } from "@/components/apmo/data"
+import { testimonialRepository } from "@/lib/repositories"
 
 export const metadata: Metadata = {
   title: "Testimonials",
@@ -18,29 +19,9 @@ const reviewHighlights = [
   { value: "8k+", label: "hair journeys supported" },
 ]
 
-const extendedTestimonials = [
-  ...testimonials,
-  {
-    quote:
-      "The consultation helped me understand why my hair felt dry by day three. The routine finally makes sense.",
-    name: "Judith N.",
-    role: "Consultation client",
-  },
-  {
-    quote:
-      "I love that Apmo gives instructions that feel practical. The products fit real life, not just perfect salon days.",
-    name: "Patricia L.",
-    role: "Protective style wearer",
-  },
-  {
-    quote:
-      "The mist has enough slip for my daughter's hair and does not leave a heavy film. Wash day is calmer now.",
-    name: "Amina T.",
-    role: "Parent and customer",
-  },
-] as const
+export default async function TestimonialsPage() {
+  const testimonials = await testimonialRepository.list()
 
-export default function TestimonialsPage() {
   return (
     <div className="bg-[#fff8f1]">
       <section className="mx-auto grid max-w-[1440px] gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-24">
@@ -94,11 +75,14 @@ export default function TestimonialsPage() {
         </div>
 
         <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {extendedTestimonials.map((item) => (
-            <Card key={`${item.name}-${item.role}`} className="border-rose-100 bg-white/90 shadow-xl shadow-rose-950/5">
+          {testimonials.map((item) => (
+            <Card key={item.id} className="border-rose-100 bg-white/90 shadow-xl shadow-rose-950/5">
               <CardContent className="p-6">
-                <div className="flex gap-1 text-amber-400" aria-label="Five star review">
-                  {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  className="flex gap-1 text-amber-400"
+                  aria-label={`${item.rating} star review`}
+                >
+                  {Array.from({ length: item.rating }).map((_, index) => (
                     <Star key={index} className="h-4 w-4 fill-current" />
                   ))}
                 </div>

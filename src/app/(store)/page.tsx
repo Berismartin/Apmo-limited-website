@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { ApmoLandingPage } from "@/components/apmo/apmo-landing-page"
+import { testimonialRepository } from "@/lib/repositories"
 
 export const metadata: Metadata = {
   title: "Apmo — Premium Textured Haircare Rituals",
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
   ],
 }
 
-export default function HomePage() {
-  return <ApmoLandingPage />
+export default async function HomePage() {
+  const testimonials = await testimonialRepository.list({ featuredOnly: true })
+  return <ApmoLandingPage testimonials={testimonials} />
 }

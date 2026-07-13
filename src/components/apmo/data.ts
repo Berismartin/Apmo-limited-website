@@ -114,27 +114,6 @@ export const portfolio = [
   },
 ] as const
 
-export const testimonials = [
-  {
-    quote:
-      "The products feel luxurious without being complicated. My wash day finally feels calm.",
-    name: "Martha A.",
-    role: "Natural hair customer",
-  },
-  {
-    quote:
-      "Apmo understands textured hair from experience, not trend. The guidance is as good as the formulas.",
-    name: "Sarah K.",
-    role: "Beauty retailer",
-  },
-  {
-    quote:
-      "The detangler changed our morning routine. It works fast and leaves a beautiful finish.",
-    name: "Grace N.",
-    role: "Parent and client",
-  },
-] as const
-
 export const faqs = [
   {
     question: "What hair types are Apmo products designed for?",

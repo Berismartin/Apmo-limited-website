@@ -15,8 +15,13 @@ import { Portfolio } from "@/components/apmo/portfolio"
 import { Products } from "@/components/apmo/products"
 import { Services } from "@/components/apmo/services"
 import { Testimonials } from "@/components/apmo/testimonials"
+import type { Testimonial } from "@/types"
 
-export function ApmoLandingPage() {
+interface ApmoLandingPageProps {
+  testimonials?: Testimonial[]
+}
+
+export function ApmoLandingPage({ testimonials = [] }: ApmoLandingPageProps) {
   return (
     <SmoothScroll>
       <div className="relative isolate min-h-screen overflow-hidden bg-[#fff8f1] text-[#351426]">
@@ -31,7 +36,7 @@ export function ApmoLandingPage() {
           <Services />
           <Products />
           <Portfolio />
-          <Testimonials />
+          <Testimonials items={testimonials} />
           <FAQ />
           <Contact />
         </div>

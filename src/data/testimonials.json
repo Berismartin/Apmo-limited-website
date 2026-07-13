@@ -1,0 +1,64 @@
+{
+  "testimonials": [
+    {
+      "id": "00000000-0000-4000-8000-000000000401",
+      "quote": "The products feel luxurious without being complicated. My wash day finally feels calm.",
+      "name": "Martha A.",
+      "role": "Natural hair customer",
+      "rating": 5,
+      "featured": true,
+      "sortOrder": 1,
+      "published": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000402",
+      "quote": "Apmo understands textured hair from experience, not trend. The guidance is as good as the formulas.",
+      "name": "Sarah K.",
+      "role": "Beauty retailer",
+      "rating": 5,
+      "featured": true,
+      "sortOrder": 2,
+      "published": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000403",
+      "quote": "The detangler changed our morning routine. It works fast and leaves a beautiful finish.",
+      "name": "Grace N.",
+      "role": "Parent and client",
+      "rating": 5,
+      "featured": true,
+      "sortOrder": 3,
+      "published": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000404",
+      "quote": "The consultation helped me understand why my hair felt dry by day three. The routine finally makes sense.",
+      "name": "Judith N.",
+      "role": "Consultation client",
+      "rating": 5,
+      "featured": false,
+      "sortOrder": 4,
+      "published": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000405",
+      "quote": "I love that Apmo gives instructions that feel practical. The products fit real life, not just perfect salon days.",
+      "name": "Patricia L.",
+      "role": "Protective style wearer",
+      "rating": 5,
+      "featured": false,
+      "sortOrder": 5,
+      "published": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000406",
+      "quote": "The mist has enough slip for my daughter's hair and does not leave a heavy film. Wash day is calmer now.",
+      "name": "Amina T.",
+      "role": "Parent and customer",
+      "rating": 5,
+      "featured": false,
+      "sortOrder": 6,
+      "published": true
+    }
+  ]
+}

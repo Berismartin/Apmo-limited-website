@@ -40,6 +40,22 @@ export interface BlogPost {
   updatedAt?: string
 }
 
+// --- Testimonials ---
+
+export interface Testimonial {
+  id: string
+  quote: string
+  name: string
+  role: string
+  rating: number
+  featured: boolean
+  sortOrder: number
+  published: boolean
+  avatar?: ProductImage
+  createdAt?: string
+  updatedAt?: string
+}
+
 // --- Product ---
 
 export type ProductStatus = "draft" | "active" | "archived"

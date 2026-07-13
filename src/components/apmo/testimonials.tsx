@@ -2,9 +2,13 @@
 
 import { FiStar } from "react-icons/fi"
 import { AnimatedCard, SectionHeading } from "@/components/apmo/animation"
-import { testimonials } from "@/components/apmo/data"
+import type { Testimonial } from "@/types"
 
-export function Testimonials() {
+interface TestimonialsProps {
+  items: Testimonial[]
+}
+
+export function Testimonials({ items }: TestimonialsProps) {
   return (
     <section className="relative z-10 px-4 py-24 text-[#351426] sm:px-6 lg:py-32">
       <div className="mx-auto max-w-7xl">
@@ -15,10 +19,13 @@ export function Testimonials() {
         />
 
         <div className="mt-14 grid gap-5 md:grid-cols-3">
-          {testimonials.map((item, index) => (
-            <AnimatedCard key={item.name} delay={index * 0.1}>
-              <div className="flex gap-1 text-amber-400">
-                {Array.from({ length: 5 }).map((_, starIndex) => (
+          {items.map((item, index) => (
+            <AnimatedCard key={item.id} delay={index * 0.1}>
+              <div
+                className="flex gap-1 text-amber-400"
+                aria-label={`${item.rating} star review`}
+              >
+                {Array.from({ length: item.rating }).map((_, starIndex) => (
                   <FiStar key={starIndex} className="fill-current" />
                 ))}
               </div>
