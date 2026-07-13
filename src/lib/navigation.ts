@@ -19,22 +19,16 @@ export const shopLinks: NavItem[] = [
   { name: "Styling", href: "/styling" },
 ]
 
-export const accountLinks: NavItem[] = [
-  { name: "My Account", href: "/account" },
-  { name: "Wishlist", href: "/wishlist" },
-  { name: "Orders", href: "/account/orders" },
-]
-
 export const infoLinks: NavItem[] = [
   { name: "About Apmo", href: "/about" },
   { name: "Testimonials", href: "/testimonials" },
   { name: "Contact", href: "/contact" },
   { name: "FAQ", href: "/faq" },
   { name: "Blog", href: "/blog" },
+  { name: "Wishlist", href: "/wishlist" },
 ]
 
 export const mobileMenuSections: NavSection[] = [
   { label: "Shop", items: shopLinks },
-  { label: "Account", items: accountLinks },
   { label: "Info", items: infoLinks },
 ]
