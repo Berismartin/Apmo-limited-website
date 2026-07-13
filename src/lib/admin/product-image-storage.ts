@@ -1,11 +1,9 @@
-import sharp from "sharp"
 import { createSupabaseAdminClient } from "@/lib/supabase/server"
+import { MAX_IMAGE_UPLOAD_BYTES } from "@/lib/constants"
 import { slugify } from "@/lib/utils"
 
 export const productImageBucket = "apmo_bucket"
-
-const maxImageSize = 1600
-const webpQuality = 82
+export const maxImageUploadBytes = MAX_IMAGE_UPLOAD_BYTES
 
 export interface ProcessedProductImage {
   url: string
@@ -19,6 +17,7 @@ export async function uploadProductImagesFromFormData(
 ): Promise<ProcessedProductImage[]> {
   const files = formData.getAll("image_file")
   const results: ProcessedProductImage[] = []
+  const folder = storageFolder(slug)
 
   for (const file of files) {
     if (!(file instanceof File) || file.size === 0) {
@@ -29,23 +28,28 @@ export async function uploadProductImagesFromFormData(
       throw new Error("Uploaded file must be an image")
     }
 
-    const { buffer, width, height } = await processProductImage(file)
-    const supabase = createSupabaseAdminClient()
-    // Add unique string to path to avoid name collisions on fast parallel uploads
-    const path = `${slugify(slug)}/${Date.now()}-${Math.random().toString(36).substring(2, 6)}.webp`
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      throw new Error(
+        `"${file.name}" is too large. Maximum image size is 2 MB.`
+      )
+    }
 
-    const { error } = await supabase.storage.from(productImageBucket).upload(path, buffer, {
-      contentType: "image/webp",
-      upsert: true,
-    })
+    const supabase = createSupabaseAdminClient()
+    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${sanitizeFilename(file.name)}`
+
+    const { error } = await supabase.storage
+      .from(productImageBucket)
+      .upload(path, file, {
+        contentType: file.type,
+        upsert: true,
+        cacheControl: "31536000",
+      })
 
     if (error) throw new Error(error.message)
 
     const { data } = supabase.storage.from(productImageBucket).getPublicUrl(path)
     results.push({
       url: data.publicUrl,
-      width,
-      height,
     })
   }
 
@@ -60,23 +64,16 @@ export async function uploadProductImageFromFormData(
   return results[0] ?? null
 }
 
-async function processProductImage(file: File) {
-  const inputBuffer = Buffer.from(await file.arrayBuffer())
-  const processed = sharp(inputBuffer, { failOn: "none" })
-    .rotate()
-    .resize({
-      width: maxImageSize,
-      height: maxImageSize,
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .webp({ quality: webpQuality })
+/** Keep nested folders like `blog/my-post` instead of collapsing to `blogmy-post`. */
+function storageFolder(slug: string) {
+  return slug
+    .split("/")
+    .map((part) => slugify(part))
+    .filter(Boolean)
+    .join("/")
+}
 
-  const { data, info } = await processed.toBuffer({ resolveWithObject: true })
-
-  return {
-    buffer: data,
-    width: info.width ?? undefined,
-    height: info.height ?? undefined,
-  }
+function sanitizeFilename(name: string) {
+  const base = name.replace(/[/\\]/g, "").trim() || "image"
+  return base.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-").slice(0, 120)
 }

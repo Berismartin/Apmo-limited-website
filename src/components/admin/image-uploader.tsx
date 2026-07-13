@@ -4,61 +4,10 @@ import { AppImage } from "@/components/ui/app-image"
 import { useRef, useState, useCallback, useEffect } from "react"
 import { Upload, X, ImageIcon, Loader2 } from "lucide-react"
 import { Label } from "@/components/ui/label"
+import { MAX_IMAGE_UPLOAD_BYTES } from "@/lib/constants"
 import type { ProductImage } from "@/types"
 
-async function compressImage(file: File): Promise<File> {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const img = new window.Image()
-      img.onload = () => {
-        const canvas = document.createElement("canvas")
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return resolve(file)
-
-        let width = img.width
-        let height = img.height
-        const max_size = 1600
-
-        if (width > height) {
-          if (width > max_size) {
-            height *= max_size / width
-            width = max_size
-          }
-        } else {
-          if (height > max_size) {
-            width *= max_size / height
-            height = max_size
-          }
-        }
-
-        canvas.width = width
-        canvas.height = height
-        ctx.drawImage(img, 0, 0, width, height)
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), {
-                type: "image/webp",
-                lastModified: Date.now(),
-              })
-              resolve(newFile)
-            } else {
-              resolve(file)
-            }
-          },
-          "image/webp",
-          0.82
-        )
-      }
-      img.onerror = () => resolve(file)
-      img.src = e.target?.result as string
-    }
-    reader.onerror = () => resolve(file)
-    reader.readAsDataURL(file)
-  })
-}
+const maxImageUploadMb = MAX_IMAGE_UPLOAD_BYTES / (1024 * 1024)
 
 interface ImageUploaderProps {
   existing?: ProductImage[]
@@ -66,50 +15,67 @@ interface ImageUploaderProps {
   onDeleteImage?: (imageUrl: string) => Promise<void>
 }
 
-export function ImageUploader({ existing = [], productId, onDeleteImage }: ImageUploaderProps) {
+export function ImageUploader({ existing = [], onDeleteImage }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [previews, setPreviews] = useState<{ url: string; name: string }[]>([])
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null)
   const dataTransferRef = useRef<DataTransfer | null>(null)
 
   useEffect(() => {
     dataTransferRef.current = new DataTransfer()
     return () => {
-      // Cleanup object URLs on unmount
       previews.forEach((p) => URL.revokeObjectURL(p.url))
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleFiles = useCallback(async (files: FileList | File[]) => {
-    if (!files.length) return
-    setIsProcessing(true)
-
-    try {
-      if (!dataTransferRef.current) dataTransferRef.current = new DataTransfer()
-      
-      const newPreviews: { url: string; name: string }[] = []
-      
-      for (const file of Array.from(files)) {
-        if (!file.type.startsWith("image/")) continue
-        
-        const processedFile = await compressImage(file)
-        dataTransferRef.current.items.add(processedFile)
-        
-        const url = URL.createObjectURL(processedFile)
-        newPreviews.push({ url, name: processedFile.name })
-      }
-
-      setPreviews(prev => [...prev, ...newPreviews])
-      
-      if (inputRef.current) {
-        inputRef.current.files = dataTransferRef.current.files
-      }
-    } finally {
-      setIsProcessing(false)
+  const syncInputFiles = useCallback(() => {
+    if (inputRef.current && dataTransferRef.current) {
+      inputRef.current.files = dataTransferRef.current.files
     }
   }, [])
+
+  const handleFiles = useCallback(
+    (files: FileList | File[]) => {
+      if (!files.length) return
+      if (!dataTransferRef.current) dataTransferRef.current = new DataTransfer()
+
+      const newPreviews: { url: string; name: string }[] = []
+      const rejected: string[] = []
+
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/") || file.size === 0) continue
+
+        if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+          rejected.push(file.name)
+          continue
+        }
+
+        dataTransferRef.current.items.add(file)
+        newPreviews.push({
+          url: URL.createObjectURL(file),
+          name: file.name,
+        })
+      }
+
+      if (rejected.length > 0) {
+        setUploadError(
+          rejected.length === 1
+            ? `"${rejected[0]}" is over ${maxImageUploadMb} MB.`
+            : `${rejected.length} files are over ${maxImageUploadMb} MB.`
+        )
+      } else {
+        setUploadError(null)
+      }
+
+      if (newPreviews.length === 0) return
+
+      setPreviews((prev) => [...prev, ...newPreviews])
+      syncInputFiles()
+    },
+    [syncInputFiles]
+  )
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -125,17 +91,20 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
       handleFiles(e.target.files)
+      // Reset so the same file can be re-selected after removal
+      e.target.value = ""
+      syncInputFiles()
     }
   }
 
   const removePreview = (index: number) => {
-    setPreviews(prev => {
+    setPreviews((prev) => {
       const copy = [...prev]
       URL.revokeObjectURL(copy[index].url)
       copy.splice(index, 1)
       return copy
     })
-    
+
     if (dataTransferRef.current && inputRef.current) {
       const dt = new DataTransfer()
       const files = dataTransferRef.current.files
@@ -159,13 +128,15 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
 
   return (
     <div className="space-y-5">
-      {/* ── Existing images gallery ────────────────────────────────── */}
       {existing.length > 0 && (
         <div className="space-y-2">
           <Label>Current images</Label>
           <div className="flex flex-wrap gap-3">
             {existing.map((img) => (
-              <div key={img.url} className="group relative h-24 w-24 overflow-hidden rounded-xl border border-rose-100 bg-rose-50 shadow-sm">
+              <div
+                key={img.url}
+                className="group relative h-24 w-24 overflow-hidden rounded-xl border border-rose-100 bg-rose-50 shadow-sm"
+              >
                 <input type="hidden" name="existing_image_url" value={img.url} />
                 <AppImage
                   src={img.url}
@@ -197,13 +168,11 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
         </div>
       )}
 
-      {/* ── Drag-and-drop upload zone ──────────────────────────────── */}
       <div className="space-y-2">
         <Label htmlFor="image_file">
           {existing.length > 0 ? "Upload new images" : "Product images"}
         </Label>
 
-        {/* Hidden real file input consumed by the Server Action */}
         <input
           ref={inputRef}
           id="image_file"
@@ -219,7 +188,10 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
         {previews.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-3">
             {previews.map((preview, idx) => (
-              <div key={preview.url} className="relative h-24 w-24 overflow-hidden rounded-xl border border-rose-200 bg-rose-50 shadow-sm">
+              <div
+                key={preview.url}
+                className="relative h-24 w-24 overflow-hidden rounded-xl border border-rose-200 bg-rose-50 shadow-sm"
+              >
                 <AppImage
                   src={preview.url}
                   alt={preview.name}
@@ -240,14 +212,16 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
           </div>
         )}
 
-        {/* Drop zone */}
         <div
           role="button"
           tabIndex={0}
           aria-label="Upload images – click or drag and drop"
           onClick={() => inputRef.current?.click()}
           onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+          onDragOver={(e) => {
+            e.preventDefault()
+            setIsDragging(true)
+          }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors select-none ${
@@ -256,10 +230,12 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
               : "border-rose-200 bg-rose-50/40 text-muted-foreground hover:border-rose-300 hover:bg-rose-50"
           }`}
         >
-          <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${isDragging ? "bg-rose-100" : "bg-rose-100/60"}`}>
-            {isProcessing ? (
-              <Loader2 className="h-6 w-6 animate-spin text-rose-600" />
-            ) : isDragging ? (
+          <div
+            className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
+              isDragging ? "bg-rose-100" : "bg-rose-100/60"
+            }`}
+          >
+            {isDragging ? (
               <ImageIcon className="h-6 w-6 text-rose-600" />
             ) : (
               <Upload className="h-6 w-6 text-rose-400" />
@@ -267,13 +243,19 @@ export function ImageUploader({ existing = [], productId, onDeleteImage }: Image
           </div>
           <div>
             <p className="text-sm font-medium">
-              {isProcessing ? "Processing images..." : isDragging ? "Drop images to upload" : "Drag & drop images or click to browse"}
+              {isDragging ? "Drop images to upload" : "Drag & drop images or click to browse"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              PNG, JPG, WebP or GIF · converted to WebP automatically
+              PNG, JPG, WebP or GIF · max {maxImageUploadMb} MB each · uploaded as-is
             </p>
           </div>
         </div>
+
+        {uploadError ? (
+          <p className="text-sm text-rose-700" role="alert">
+            {uploadError}
+          </p>
+        ) : null}
       </div>
     </div>
   )
