@@ -5,6 +5,8 @@ import { redirects as redirectRules } from "./src/lib/redirects";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  // Keep heavy WASM/ONNX packages out of the server bundle.
+  serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
   images: {
     // Supabase public storage — explicit path keeps the allowlist tight.
     // Images are also served with `unoptimized` via AppImage because Next 16

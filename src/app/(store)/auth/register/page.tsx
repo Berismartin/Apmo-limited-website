@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthCardLayout } from "@/components/auth/auth-card-layout"
+import { PasswordInput } from "@/components/auth/password-input"
 import { useAuthStore } from "@/store/auth"
 import { toast } from "sonner"
 import { registerSchema } from "@/lib/validators"
@@ -14,7 +15,11 @@ export default function RegisterPage() {
   const router = useRouter()
   const register = useAuthStore((s) => s.register)
   const [form, setForm] = useState({
-    firstName: "", lastName: "", email: "", password: "", confirmPassword: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   })
   const [loading, setLoading] = useState(false)
 
@@ -25,9 +30,17 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const validation = registerSchema.safeParse(form)
-    if (!validation.success) { toast.error(validation.error.issues[0].message); return }
+    if (!validation.success) {
+      toast.error(validation.error.issues[0].message)
+      return
+    }
     setLoading(true)
-    const success = await register({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password })
+    const success = await register({
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      password: form.password,
+    })
     if (success) {
       toast.success("Account created successfully!")
       router.push("/admin")
@@ -49,24 +62,61 @@ export default function RegisterPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="firstName">First name</Label>
-            <Input id="firstName" name="firstName" value={form.firstName} onChange={handleChange} required />
+            <Input
+              id="firstName"
+              name="firstName"
+              value={form.firstName}
+              onChange={handleChange}
+              required
+              autoComplete="given-name"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="lastName">Last name</Label>
-            <Input id="lastName" name="lastName" value={form.lastName} onChange={handleChange} required />
+            <Input
+              id="lastName"
+              name="lastName"
+              value={form.lastName}
+              onChange={handleChange}
+              required
+              autoComplete="family-name"
+            />
           </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" placeholder="you@example.com" value={form.email} onChange={handleChange} required />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={handleChange}
+            required
+            autoComplete="email"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" value={form.password} onChange={handleChange} required />
+          <PasswordInput
+            id="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            autoComplete="new-password"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">Confirm password</Label>
-          <Input id="confirmPassword" name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} required />
+          <PasswordInput
+            id="confirmPassword"
+            name="confirmPassword"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            required
+            autoComplete="new-password"
+          />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Creating..." : "Create Account"}

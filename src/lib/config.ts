@@ -39,12 +39,12 @@ export const siteConfig = {
   },
 
   // Shipping
-  freeShippingThreshold: 7500, // in cents ($75.00)
+  freeShippingThreshold: 15000000, // in cents-equivalent (UGX 150,000)
   taxRate: 0.08, // 8%
 
   // Currency & locale
-  currency: "USD",
-  locale: "en-US",
+  currency: "UGX",
+  locale: "en-UG",
 
   // Legal
   copyrightYear: new Date().getFullYear(),

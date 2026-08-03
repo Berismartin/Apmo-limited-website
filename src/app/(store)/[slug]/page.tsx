@@ -59,7 +59,7 @@ export async function generateMetadata({
         "product:price:amount": variant
           ? String(variant.price / 100)
           : "",
-        "product:price:currency": variant?.currency ?? "USD",
+        "product:price:currency": variant?.currency ?? siteConfig.currency,
       },
     }
   }

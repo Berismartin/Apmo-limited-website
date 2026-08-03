@@ -1,6 +1,7 @@
 "use server"
 
 import { createSupabaseAdminClient } from "@/lib/supabase/server"
+import { siteConfig } from "@/lib/config"
 
 interface SubmitOrderPayload {
   customerEmail: string
@@ -40,7 +41,7 @@ export async function submitGuestOrderAction(payload: SubmitOrderPayload) {
       tax: payload.tax,
       shipping: payload.shipping,
       total: payload.total,
-      currency: "USD",
+      currency: siteConfig.currency,
       customer_email: payload.customerEmail,
       customer_name: payload.customerName,
       shipping_address: payload.shippingAddress,

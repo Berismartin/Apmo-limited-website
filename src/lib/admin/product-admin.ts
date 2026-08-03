@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createSupabaseAdminClient } from "@/lib/supabase/server"
-import { slugify } from "@/lib/utils"
+import { siteConfig } from "@/lib/config"
+import { normalizeCurrencyCode, slugify } from "@/lib/utils"
 import {
   mapBrand,
   mapCategory,
@@ -241,7 +242,7 @@ async function upsertProduct(formData: FormData, productId?: string) {
     name: variantName,
     price,
     compare_at_price: compareAtPrice,
-    currency: String(formData.get("currency") || "USD"),
+    currency: normalizeCurrencyCode(String(formData.get("currency") || siteConfig.currency)),
     inventory_quantity: Number.isFinite(inventoryQuantity) ? inventoryQuantity : 0,
     track_inventory: formData.get("track_inventory") === "on",
     allow_backorder: formData.get("allow_backorder") === "on",

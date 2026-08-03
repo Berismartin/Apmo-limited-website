@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createSupabaseAdminClient } from "@/lib/supabase/server"
+import { siteConfig } from "@/lib/config"
+import { normalizeCurrencyCode } from "@/lib/utils"
 import type {
   Address,
   Order,
@@ -94,6 +96,48 @@ export async function updateOrderAction(formData: FormData) {
   redirect(`/admin/orders/${id}`)
 }
 
+export async function updateOrderStatusAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "")
+  const status = String(formData.get("status") ?? "") as OrderStatus
+
+  if (!id) throw new Error("Missing order id")
+  if (!["pending", "delivered", "cancelled"].includes(status)) {
+    throw new Error("Invalid order status")
+  }
+
+  const supabase = createSupabaseAdminClient()
+
+  const { data: existing, error: existingError } = await supabase
+    .from("orders")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (existingError) throw new Error(existingError.message)
+  if (!existing) throw new Error("Order not found")
+  if (existing.status === "delivered" && status === "cancelled") {
+    throw new Error("Delivered orders cannot be cancelled")
+  }
+
+  const { error } = await supabase
+    .from("orders")
+    .update({
+      status,
+      payment_status:
+        status === "delivered"
+          ? "captured"
+          : status === "cancelled"
+            ? "failed"
+            : "pending",
+    })
+    .eq("id", id)
+
+  if (error) throw new Error(error.message)
+
+  revalidateOrders()
+  revalidatePath(`/admin/orders/${id}`)
+}
+
 export async function deleteOrderAction(formData: FormData) {
   const id = String(formData.get("id") ?? "")
   if (!id) throw new Error("Missing order id")
@@ -108,23 +152,29 @@ export async function deleteOrderAction(formData: FormData) {
 
 async function upsertOrder(formData: FormData, orderId?: string) {
   const supabase = createSupabaseAdminClient()
-  const subtotal = parseMoneyToCents(String(formData.get("subtotal") ?? "0"))
+  const itemQuantity = Number(formData.get("item_quantity") ?? 1)
+  const itemPrice = parseMoneyToCents(String(formData.get("item_price") ?? "0"))
+  const qty = Number.isFinite(itemQuantity) && itemQuantity > 0 ? itemQuantity : 1
+  const itemTotal = itemPrice * qty
+  const subtotalInput = String(formData.get("subtotal") ?? "").trim()
+  const subtotal = subtotalInput ? parseMoneyToCents(subtotalInput) : itemTotal
   const tax = parseMoneyToCents(String(formData.get("tax") ?? "0"))
   const shipping = parseMoneyToCents(String(formData.get("shipping") ?? "0"))
   const totalInput = String(formData.get("total") ?? "").trim()
   const total = totalInput ? parseMoneyToCents(totalInput) : subtotal + tax + shipping
   const orderNumber =
     String(formData.get("order_number") ?? "").trim() || `APMO-${Date.now()}`
+  const status = normalizeSimpleStatus(String(formData.get("status") ?? "pending"))
 
   const payload = {
     order_number: orderNumber,
-    status: String(formData.get("status") ?? "pending") as OrderStatus,
+    status,
     payment_status: String(formData.get("payment_status") ?? "pending") as PaymentStatus,
     subtotal,
     tax,
     shipping,
     total,
-    currency: String(formData.get("currency") || "USD"),
+    currency: normalizeCurrencyCode(String(formData.get("currency") || siteConfig.currency)),
     customer_email: requiredText(formData, "customer_email"),
     customer_name: requiredText(formData, "customer_name"),
     shipping_address: buildAddress(formData),
@@ -141,9 +191,6 @@ async function upsertOrder(formData: FormData, orderId?: string) {
   await supabase.from("order_line_items").delete().eq("order_id", id)
 
   const itemName = requiredText(formData, "item_name")
-  const itemQuantity = Number(formData.get("item_quantity") ?? 1)
-  const itemPrice = parseMoneyToCents(String(formData.get("item_price") ?? "0"))
-  const itemTotal = itemPrice * (Number.isFinite(itemQuantity) ? itemQuantity : 1)
 
   const { error: itemError } = await supabase.from("order_line_items").insert({
     order_id: id,
@@ -157,12 +204,17 @@ async function upsertOrder(formData: FormData, orderId?: string) {
       alt: itemName,
     },
     price: itemPrice,
-    quantity: Number.isFinite(itemQuantity) ? itemQuantity : 1,
+    quantity: qty,
     total: itemTotal,
   })
 
   if (itemError) throw new Error(itemError.message)
   return id
+}
+
+function normalizeSimpleStatus(value: string): OrderStatus {
+  if (value === "delivered" || value === "cancelled") return value
+  return "pending"
 }
 
 function mapOrder(row: SupabaseOrderRow): Order {
@@ -188,6 +240,14 @@ function mapOrder(row: SupabaseOrderRow): Order {
 }
 
 function mapOrderLineItem(row: SupabaseOrderLineItemRow): OrderLineItem {
+  const image =
+    row.image && typeof row.image === "object" && "url" in row.image
+      ? row.image
+      : {
+          url: "/images/products/placeholder.svg",
+          alt: row.name,
+        }
+
   return {
     id: row.id,
     productId: row.product_id ?? "",
@@ -195,7 +255,7 @@ function mapOrderLineItem(row: SupabaseOrderLineItemRow): OrderLineItem {
     name: row.name,
     variantName: row.variant_name,
     sku: row.sku,
-    image: row.image,
+    image,
     price: row.price,
     quantity: row.quantity,
     total: row.total,

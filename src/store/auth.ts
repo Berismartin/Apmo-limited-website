@@ -11,6 +11,8 @@ interface AuthState {
 
   login: (email: string, password: string) => Promise<boolean>
   register: (data: { firstName: string; lastName: string; email: string; password: string }) => Promise<boolean>
+  requestPasswordReset: (email: string) => Promise<{ ok: boolean; error?: string }>
+  updatePassword: (password: string) => Promise<{ ok: boolean; error?: string }>
   logout: () => Promise<void>
   updateProfile: (data: Partial<Pick<User, "firstName" | "lastName" | "email">>) => void
   addAddress: (address: Omit<Address, "id">) => void
@@ -85,6 +87,45 @@ export const useAuthStore = create<AuthState>()(
           return true
         } catch {
           return false
+        }
+      },
+
+      requestPasswordReset: async (email) => {
+        try {
+          const supabase = createSupabaseBrowserClient()
+          const redirectTo = `${window.location.origin}/auth/reset-password`
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo,
+          })
+
+          if (error) {
+            return { ok: false, error: error.message }
+          }
+
+          return { ok: true }
+        } catch (err) {
+          return {
+            ok: false,
+            error: err instanceof Error ? err.message : "Could not send reset email",
+          }
+        }
+      },
+
+      updatePassword: async (password) => {
+        try {
+          const supabase = createSupabaseBrowserClient()
+          const { error } = await supabase.auth.updateUser({ password })
+
+          if (error) {
+            return { ok: false, error: error.message }
+          }
+
+          return { ok: true }
+        } catch (err) {
+          return {
+            ok: false,
+            error: err instanceof Error ? err.message : "Could not update password",
+          }
         }
       },
 

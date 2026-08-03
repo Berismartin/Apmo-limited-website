@@ -1,56 +1,125 @@
+import Link from "next/link"
+import {
+  DollarSign,
+  MessageSquareQuote,
+  Newspaper,
+  Package,
+  ShoppingCart,
+  Users,
+} from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageHeader } from "@/components/ui/page-header"
 import { OrderStatusBadge } from "@/components/ui/order-status-badge"
+import { getAdminBlogState } from "@/lib/admin/blog-admin"
 import { getAdminOrdersState } from "@/lib/admin/order-admin"
 import { getAdminCatalogState } from "@/lib/admin/product-admin"
+import { getAdminTestimonialsState } from "@/lib/admin/testimonial-admin"
+import { siteConfig } from "@/lib/config"
 import { formatPrice } from "@/lib/utils"
-import { DollarSign, Package, ShoppingCart, Users } from "lucide-react"
-import Link from "next/link"
-import { createSupabaseAdminClient } from "@/lib/supabase/server"
+import { createSupabaseAdminClient, isSupabaseAdminConfigured } from "@/lib/supabase/server"
 
 export default async function AdminDashboardPage() {
-  const [{ products }, ordersState, customersResult] = await Promise.all([
-    getAdminCatalogState(),
-    getAdminOrdersState(),
-    createSupabaseAdminClient()
-      .from("profiles")
-      .select("id", { count: "exact", head: true }),
-  ])
+  const [catalog, ordersState, blogState, testimonialsState, customerCount] =
+    await Promise.all([
+      getAdminCatalogState(),
+      getAdminOrdersState(),
+      getAdminBlogState(),
+      getAdminTestimonialsState(),
+      getCustomerCount(),
+    ])
 
+  const products = catalog.products
   const orders = ordersState.orders
-  const revenue = orders.reduce((sum, order) => sum + order.total, 0)
+  const activeProducts = products.filter((product) => product.status === "active").length
+  const pendingOrders = orders.filter((order) =>
+    ["pending", "processing"].includes(order.status)
+  ).length
+  const revenue = orders
+    .filter((order) => order.status !== "cancelled" && order.status !== "refunded")
+    .reduce((sum, order) => sum + order.total, 0)
   const recentOrders = orders.slice(0, 5)
+  const publishedPosts = blogState.posts.filter((post) => Boolean(post.publishedAt)).length
+  const publishedTestimonials = testimonialsState.testimonials.filter(
+    (item) => item.published
+  ).length
 
   const stats = [
-    { name: "Total Revenue", value: formatPrice(revenue, "USD"), icon: DollarSign },
-    { name: "Orders", value: String(orders.length), icon: ShoppingCart },
-    { name: "Products", value: String(products.length), icon: Package },
-    { name: "Customers", value: String(customersResult.count ?? 0), icon: Users },
+    {
+      name: "Total Revenue",
+      value: formatPrice(revenue, siteConfig.currency),
+      hint: "Completed & open orders",
+      icon: DollarSign,
+      href: "/admin/orders",
+    },
+    {
+      name: "Orders",
+      value: String(orders.length),
+      hint: `${pendingOrders} pending / processing`,
+      icon: ShoppingCart,
+      href: "/admin/orders",
+    },
+    {
+      name: "Products",
+      value: String(products.length),
+      hint: `${activeProducts} active`,
+      icon: Package,
+      href: "/admin/products",
+    },
+    {
+      name: "Customers",
+      value: String(customerCount),
+      hint: "Registered profiles",
+      icon: Users,
+      href: "/admin/customers",
+    },
+    {
+      name: "Blog posts",
+      value: String(blogState.posts.length),
+      hint: `${publishedPosts} with publish date`,
+      icon: Newspaper,
+      href: "/admin/blog",
+    },
+    {
+      name: "Testimonials",
+      value: String(testimonialsState.testimonials.length),
+      hint: `${publishedTestimonials} published`,
+      icon: MessageSquareQuote,
+      href: "/admin/testimonials",
+    },
   ]
 
   return (
     <div>
-      <PageHeader title="Dashboard" description="Overview of your store performance." />
+      <PageHeader
+        title="Dashboard"
+        description={`Overview of Apmo store activity in ${siteConfig.currency}.`}
+      />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {stats.map((stat) => (
-          <Card key={stat.name}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.name}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{stat.value}</p>
-            </CardContent>
-          </Card>
+          <Link key={stat.name} href={stat.href} className="block transition-opacity hover:opacity-90">
+            <Card className="h-full">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.name}
+                </CardTitle>
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{stat.value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{stat.hint}</p>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
       <Card className="mt-8">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent Orders</CardTitle>
+          <Link href="/admin/orders" className="text-sm text-rose-700 hover:underline">
+            View all
+          </Link>
         </CardHeader>
         <CardContent className="p-0">
           {recentOrders.length === 0 ? (
@@ -84,13 +153,15 @@ export default async function AdminDashboardPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div>{order.customerName}</div>
-                        <div className="text-xs text-muted-foreground">{order.customerEmail}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {order.customerEmail}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <OrderStatusBadge status={order.status} />
                       </td>
                       <td className="px-4 py-3 font-medium">
-                        {formatPrice(order.total, order.currency)}
+                        {formatPrice(order.total, order.currency || siteConfig.currency)}
                       </td>
                     </tr>
                   ))}
@@ -102,4 +173,19 @@ export default async function AdminDashboardPage() {
       </Card>
     </div>
   )
+}
+
+async function getCustomerCount() {
+  if (!isSupabaseAdminConfigured()) return 0
+
+  try {
+    const { count, error } = await createSupabaseAdminClient()
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+
+    if (error) return 0
+    return count ?? 0
+  } catch {
+    return 0
+  }
 }

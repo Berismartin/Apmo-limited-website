@@ -1,11 +1,10 @@
 import { notFound } from "next/navigation"
-import { OrderForm } from "@/components/admin/order-form"
-import { Button } from "@/components/ui/button"
+import { OrderDetail } from "@/components/admin/order-detail"
 import { PageHeader } from "@/components/ui/page-header"
 import {
   deleteOrderAction,
   getAdminOrder,
-  updateOrderAction,
+  updateOrderStatusAction,
 } from "@/lib/admin/order-admin"
 import { DeleteOrderDialog } from "@/components/admin/delete-order-dialog"
 
@@ -25,8 +24,8 @@ export default async function EditAdminOrderPage({
     <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <PageHeader
-          title={`Edit ${order.orderNumber}`}
-          description="Update fulfilment status, payment status, customer details, totals, and line item."
+          title={`Order ${order.orderNumber}`}
+          description="View items and update fulfilment status."
         />
         <DeleteOrderDialog
           orderId={order.id}
@@ -36,11 +35,7 @@ export default async function EditAdminOrderPage({
       </div>
 
       <div className="mt-8">
-        <OrderForm
-          action={updateOrderAction}
-          order={order}
-          submitLabel="Save changes"
-        />
+        <OrderDetail order={order} updateStatusAction={updateOrderStatusAction} />
       </div>
     </div>
   )

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageUploader } from "@/components/admin/image-uploader"
+import { siteConfig } from "@/lib/config"
+import { normalizeCurrencyCode } from "@/lib/utils"
 import type { Brand, Category, Product } from "@/types"
 
 interface ProductFormProps {
@@ -17,6 +19,10 @@ interface ProductFormProps {
   categories: Category[]
   product?: Product | null
   submitLabel: string
+}
+
+function currencyValue(value?: string) {
+  return normalizeCurrencyCode(value || siteConfig.currency)
 }
 
 export function ProductForm({
@@ -145,6 +151,7 @@ export function ProductForm({
             existing={product?.images ?? []}
             productId={product?.id}
             onDeleteImage={handleDeleteImage}
+            enableBackgroundRemoval
           />
         </CardContent>
       </Card>
@@ -192,7 +199,18 @@ export function ProductForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="currency">Currency</Label>
-            <Input id="currency" name="currency" defaultValue={variant?.currency ?? "UGX"} required />
+            <select
+              id="currency"
+              name="currency"
+              defaultValue={currencyValue(variant?.currency)}
+              className="flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              required
+            >
+              <option value="UGX">UGX — Ugandan Shilling</option>
+              <option value="USD">USD — US Dollar</option>
+              <option value="KES">KES — Kenyan Shilling</option>
+              <option value="EUR">EUR — Euro</option>
+            </select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="inventory_quantity">Inventory quantity</Label>
