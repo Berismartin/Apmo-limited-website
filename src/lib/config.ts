@@ -11,7 +11,7 @@ export const siteConfig = {
     "Apmo creates premium textured haircare rituals, product education, and confidence-first beauty experiences.",
 
   // Announcement bar (set to "" to hide)
-  announcement: "Apmo Website is coming soon — contact us for product guidance.",
+  // announcement: "Apmo Website is coming soon — contact us for product guidance.",
 
   // URLs
   url: process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
