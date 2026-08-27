@@ -2,6 +2,7 @@
 
 import { useTransition } from "react"
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
 import { AppImage } from "@/components/ui/app-image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -94,6 +95,7 @@ export function OrderDetail({ order, updateStatusAction }: OrderDetailProps) {
                   className={statusColorClass(option.value, isActive)}
                   onClick={() => handleStatus(option.value)}
                 >
+                  {isPending && !isActive ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
                   {isActive ? `${option.label} (current)` : option.label}
                 </Button>
               )

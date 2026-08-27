@@ -12,7 +12,6 @@ import type { Brand } from "@/types"
 import { requireAdmin } from "./require-admin"
 
 export async function getAdminBrands(): Promise<Brand[]> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("brands")
@@ -24,7 +23,6 @@ export async function getAdminBrands(): Promise<Brand[]> {
 }
 
 export async function getAdminBrand(id: string): Promise<Brand | null> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("brands")

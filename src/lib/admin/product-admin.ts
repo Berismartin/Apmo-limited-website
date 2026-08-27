@@ -31,7 +31,6 @@ export interface AdminCatalogState {
 }
 
 export async function getAdminCatalogState(): Promise<AdminCatalogState> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const [productsResult, categoriesResult, brandsResult] = await Promise.all([
     supabase
@@ -60,7 +59,6 @@ export async function getAdminCatalogState(): Promise<AdminCatalogState> {
 }
 
 export async function getAdminProduct(id: string): Promise<Product | null> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("products")

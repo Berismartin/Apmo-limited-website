@@ -58,7 +58,6 @@ export interface AdminOrdersState {
 }
 
 export async function getAdminOrdersState(): Promise<AdminOrdersState> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("orders")
@@ -73,7 +72,6 @@ export async function getAdminOrdersState(): Promise<AdminOrdersState> {
 }
 
 export async function getAdminOrder(id: string): Promise<Order | null> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("orders")

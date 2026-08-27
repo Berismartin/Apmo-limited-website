@@ -1,6 +1,7 @@
 "use client"
 
 import { useTransition } from "react"
+import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { updateCustomerRoleAction } from "@/lib/admin/customer-admin"
@@ -42,6 +43,7 @@ export function CustomerRoleForm({ customerId, currentRole }: CustomerRoleFormPr
         disabled={isPending}
         className="border-rose-200 hover:bg-rose-50"
       >
+        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {isPending ? "Updating…" : `Make ${newRole}`}
       </Button>
     </div>

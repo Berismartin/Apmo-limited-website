@@ -20,7 +20,6 @@ export interface AdminBlogState {
 }
 
 export async function getAdminBlogState(): Promise<AdminBlogState> {
-  await requireAdmin()
   try {
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase
@@ -46,7 +45,6 @@ export async function getAdminBlogState(): Promise<AdminBlogState> {
 }
 
 export async function getAdminBlogPost(id: string): Promise<BlogPost | null> {
-  await requireAdmin()
   try {
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase

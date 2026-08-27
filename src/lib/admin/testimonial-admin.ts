@@ -19,7 +19,6 @@ export interface AdminTestimonialsState {
 }
 
 export async function getAdminTestimonialsState(): Promise<AdminTestimonialsState> {
-  await requireAdmin()
   try {
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase
@@ -47,7 +46,6 @@ export async function getAdminTestimonialsState(): Promise<AdminTestimonialsStat
 }
 
 export async function getAdminTestimonial(id: string): Promise<Testimonial | null> {
-  await requireAdmin()
   try {
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase

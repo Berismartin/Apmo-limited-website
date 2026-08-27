@@ -2,6 +2,7 @@
 
 import { useTransition } from "react"
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -143,6 +144,7 @@ export function BlogForm({ action, post, submitLabel }: BlogFormProps) {
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={isPending}>
+          {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           {isPending ? "Saving…" : submitLabel}
         </Button>
         <Button asChild variant="outline">

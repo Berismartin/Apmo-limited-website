@@ -42,7 +42,6 @@ export async function getAdminCustomers(search?: string): Promise<{
   customers: AdminCustomer[]
   total: number
 }> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
 
   let query = supabase
@@ -92,7 +91,6 @@ export async function getAdminCustomers(search?: string): Promise<{
 }
 
 export async function getAdminCustomer(id: string): Promise<AdminCustomerDetail | null> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
 
   const { data: profile, error: profileError } = await supabase

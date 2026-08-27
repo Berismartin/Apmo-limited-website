@@ -13,7 +13,6 @@ import { uploadProductImagesFromFormData } from "./product-image-storage"
 import { requireAdmin } from "./require-admin"
 
 export async function getAdminCategories(): Promise<Category[]> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("categories")
@@ -25,7 +24,6 @@ export async function getAdminCategories(): Promise<Category[]> {
 }
 
 export async function getAdminCategory(id: string): Promise<Category | null> {
-  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("categories")
