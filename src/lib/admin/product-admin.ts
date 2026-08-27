@@ -72,9 +72,9 @@ export async function getAdminProduct(id: string): Promise<Product | null> {
 
 export async function createProductAction(formData: FormData) {
   await requireAdmin()
-  const productId = await upsertProduct(formData)
+  await upsertProduct(formData)
   revalidateCatalog()
-  redirect(`/admin/products/${productId}`)
+  redirect("/admin/products")
 }
 
 export async function updateProductAction(formData: FormData) {

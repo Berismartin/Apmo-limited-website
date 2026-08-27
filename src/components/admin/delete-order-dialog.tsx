@@ -32,7 +32,7 @@ export function DeleteOrderDialog({
   const [isDeleting, setIsDeleting] = useState(false)
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!isDeleting) setIsOpen(open) }}>
       <DialogTrigger render={triggerNode || <Button variant="destructive" />}>
         Delete
       </DialogTrigger>
