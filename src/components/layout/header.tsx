@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { Search, ShoppingBag, User, Menu, Heart, LogOut, ChevronDown } from "lucide-react"
+import { Search, ShoppingBag, User, Menu, Heart, LogOut, ChevronDown, LayoutDashboard } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
   DropdownMenu,
@@ -205,6 +205,12 @@ export function Header({ categories = [] }: HeaderProps) {
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
+                {user?.role === "admin" ? (
+                  <DropdownMenuItem onClick={() => router.push("/admin")}>
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem onClick={() => { logout(); router.push("/") }}>
                   <LogOut className="mr-2 h-4 w-4" />
                   {tCommon("signOut")}

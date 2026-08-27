@@ -15,6 +15,7 @@ import {
 } from "@/lib/repositories/supabase-catalog-mappers"
 import type { Brand, Category, Product, ProductOption, ProductStatus } from "@/types"
 import { uploadProductImagesFromFormData } from "./product-image-storage"
+import { requireAdmin } from "./require-admin"
 
 const adminProductSelect = `
   *,
@@ -30,6 +31,7 @@ export interface AdminCatalogState {
 }
 
 export async function getAdminCatalogState(): Promise<AdminCatalogState> {
+  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const [productsResult, categoriesResult, brandsResult] = await Promise.all([
     supabase
@@ -58,6 +60,7 @@ export async function getAdminCatalogState(): Promise<AdminCatalogState> {
 }
 
 export async function getAdminProduct(id: string): Promise<Product | null> {
+  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("products")
@@ -70,12 +73,14 @@ export async function getAdminProduct(id: string): Promise<Product | null> {
 }
 
 export async function createProductAction(formData: FormData) {
+  await requireAdmin()
   const productId = await upsertProduct(formData)
   revalidateCatalog()
   redirect(`/admin/products/${productId}`)
 }
 
 export async function updateProductAction(formData: FormData) {
+  await requireAdmin()
   const productId = String(formData.get("id") ?? "")
   if (!productId) throw new Error("Missing product id")
 
@@ -85,6 +90,7 @@ export async function updateProductAction(formData: FormData) {
 }
 
 export async function deleteProductAction(formData: FormData) {
+  await requireAdmin()
   const productId = String(formData.get("id") ?? "")
   if (!productId) throw new Error("Missing product id")
 
@@ -97,6 +103,7 @@ export async function deleteProductAction(formData: FormData) {
 }
 
 export async function deleteProductImageAction(productId: string, imageUrl: string) {
+  await requireAdmin()
   const supabase = createSupabaseAdminClient()
 
   // Remove the db row

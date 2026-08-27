@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageUploader } from "@/components/admin/image-uploader"
+import { toast } from "sonner"
 import type { Testimonial } from "@/types"
 
 interface TestimonialFormProps {
@@ -25,7 +26,15 @@ export function TestimonialForm({
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      await action(formData)
+      try {
+        await action(formData)
+      } catch (err) {
+        if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+          toast.success("Testimonial saved successfully")
+          throw err
+        }
+        toast.error(err instanceof Error ? err.message : "Failed to save testimonial")
+      }
     })
   }
 

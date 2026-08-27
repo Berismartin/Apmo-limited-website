@@ -10,6 +10,7 @@ import {
 import { jsonTestimonialRepository } from "@/lib/repositories/json-testimonial-repository"
 import { uploadProductImagesFromFormData } from "./product-image-storage"
 import type { Testimonial } from "@/types"
+import { requireAdmin } from "./require-admin"
 
 export interface AdminTestimonialsState {
   testimonials: Testimonial[]
@@ -18,6 +19,7 @@ export interface AdminTestimonialsState {
 }
 
 export async function getAdminTestimonialsState(): Promise<AdminTestimonialsState> {
+  await requireAdmin()
   try {
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase
@@ -45,6 +47,7 @@ export async function getAdminTestimonialsState(): Promise<AdminTestimonialsStat
 }
 
 export async function getAdminTestimonial(id: string): Promise<Testimonial | null> {
+  await requireAdmin()
   try {
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase
@@ -61,12 +64,14 @@ export async function getAdminTestimonial(id: string): Promise<Testimonial | nul
 }
 
 export async function createTestimonialAction(formData: FormData) {
+  await requireAdmin()
   const id = await upsertTestimonial(formData)
   revalidateTestimonials()
   redirect(`/admin/testimonials/${id}`)
 }
 
 export async function updateTestimonialAction(formData: FormData) {
+  await requireAdmin()
   const id = String(formData.get("id") ?? "")
   if (!id) throw new Error("Missing testimonial id")
 
@@ -76,6 +81,7 @@ export async function updateTestimonialAction(formData: FormData) {
 }
 
 export async function deleteTestimonialAction(formData: FormData) {
+  await requireAdmin()
   const id = String(formData.get("id") ?? "")
   if (!id) throw new Error("Missing testimonial id")
 

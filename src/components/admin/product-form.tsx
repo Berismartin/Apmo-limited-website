@@ -2,12 +2,14 @@
 
 import { useTransition } from "react"
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageUploader } from "@/components/admin/image-uploader"
+import { toast } from "sonner"
 import { siteConfig } from "@/lib/config"
 import { normalizeCurrencyCode } from "@/lib/utils"
 import type { Brand, Category, Product } from "@/types"
@@ -53,7 +55,15 @@ export function ProductForm({
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      await action(formData)
+      try {
+        await action(formData)
+      } catch (err) {
+        if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+          toast.success("Product saved successfully")
+          throw err
+        }
+        toast.error(err instanceof Error ? err.message : "Failed to save product")
+      }
     })
   }
 
@@ -118,7 +128,38 @@ export function ProductForm({
               required
             />
           </div>
-
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="body">Full description (HTML)</Label>
+            <Textarea
+              id="body"
+              name="body"
+              defaultValue={product?.body ?? ""}
+              rows={10}
+              placeholder="Detailed product description shown on the product page..."
+              className="font-mono text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags</Label>
+            <Input
+              id="tags"
+              name="tags"
+              defaultValue={product?.tags?.join(", ") ?? ""}
+              placeholder="haircare, natural, moisturizing"
+            />
+          </div>
+          <div className="flex items-center gap-2 pt-8">
+            <input
+              id="featured"
+              name="featured"
+              type="checkbox"
+              defaultChecked={product?.featured ?? false}
+              className="h-4 w-4 rounded border-rose-200"
+            />
+            <Label htmlFor="featured">Featured product</Label>
+          </div>
+          <input type="hidden" name="rating" value={product?.rating ?? 0} />
+          <input type="hidden" name="review_count" value={product?.reviewCount ?? 0} />
         </CardContent>
       </Card>
 
@@ -256,6 +297,7 @@ export function ProductForm({
           <Link href="/admin/products">Cancel</Link>
         </Button>
         <Button type="submit" disabled={isPending}>
+          {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           {isPending ? "Saving…" : submitLabel}
         </Button>
       </div>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 import { siteConfig } from "@/lib/config"
 
 interface OrderFormProps {
@@ -19,7 +20,15 @@ export function OrderForm({ action, submitLabel }: OrderFormProps) {
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      await action(formData)
+      try {
+        await action(formData)
+      } catch (err) {
+        if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+          toast.success("Order created successfully")
+          throw err
+        }
+        toast.error(err instanceof Error ? err.message : "Failed to save order")
+      }
     })
   }
 
@@ -28,8 +37,6 @@ export function OrderForm({ action, submitLabel }: OrderFormProps) {
       <input type="hidden" name="currency" value={siteConfig.currency} />
       <input type="hidden" name="status" value="pending" />
       <input type="hidden" name="payment_status" value="pending" />
-      <input type="hidden" name="tax" value="0" />
-      <input type="hidden" name="shipping" value="0" />
 
       <Card>
         <CardHeader>
@@ -56,9 +63,18 @@ export function OrderForm({ action, submitLabel }: OrderFormProps) {
             <Label htmlFor="shipping_phone">Phone</Label>
             <Input id="shipping_phone" name="shipping_phone" />
           </div>
-          <input type="hidden" name="shipping_state" value="" />
-          <input type="hidden" name="shipping_postal_code" value="" />
-          <input type="hidden" name="shipping_country" value="UG" />
+          <div className="space-y-2">
+            <Label htmlFor="shipping_state">State / Region</Label>
+            <Input id="shipping_state" name="shipping_state" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="shipping_postal_code">Postal code</Label>
+            <Input id="shipping_postal_code" name="shipping_postal_code" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="shipping_country">Country</Label>
+            <Input id="shipping_country" name="shipping_country" defaultValue="UG" required />
+          </div>
         </CardContent>
       </Card>
 
@@ -99,6 +115,28 @@ export function OrderForm({ action, submitLabel }: OrderFormProps) {
               min="1"
               defaultValue={1}
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tax">Tax ({siteConfig.currency})</Label>
+            <Input
+              id="tax"
+              name="tax"
+              type="number"
+              step="any"
+              min="0"
+              defaultValue={0}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="shipping">Shipping ({siteConfig.currency})</Label>
+            <Input
+              id="shipping"
+              name="shipping"
+              type="number"
+              step="any"
+              min="0"
+              defaultValue={0}
             />
           </div>
         </CardContent>

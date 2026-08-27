@@ -13,6 +13,7 @@ import type {
   PaymentStatus,
   ProductImage,
 } from "@/types"
+import { requireAdmin } from "./require-admin"
 
 interface SupabaseOrderLineItemRow {
   id: string
@@ -57,6 +58,7 @@ export interface AdminOrdersState {
 }
 
 export async function getAdminOrdersState(): Promise<AdminOrdersState> {
+  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("orders")
@@ -71,6 +73,7 @@ export async function getAdminOrdersState(): Promise<AdminOrdersState> {
 }
 
 export async function getAdminOrder(id: string): Promise<Order | null> {
+  await requireAdmin()
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
     .from("orders")
@@ -83,12 +86,14 @@ export async function getAdminOrder(id: string): Promise<Order | null> {
 }
 
 export async function createOrderAction(formData: FormData) {
+  await requireAdmin()
   const id = await upsertOrder(formData)
   revalidateOrders()
   redirect(`/admin/orders/${id}`)
 }
 
 export async function updateOrderAction(formData: FormData) {
+  await requireAdmin()
   const id = String(formData.get("id") ?? "")
   if (!id) throw new Error("Missing order id")
   await upsertOrder(formData, id)
@@ -97,11 +102,13 @@ export async function updateOrderAction(formData: FormData) {
 }
 
 export async function updateOrderStatusAction(formData: FormData) {
+  await requireAdmin()
   const id = String(formData.get("id") ?? "")
   const status = String(formData.get("status") ?? "") as OrderStatus
 
   if (!id) throw new Error("Missing order id")
-  if (!["pending", "delivered", "cancelled"].includes(status)) {
+  const validStatuses: OrderStatus[] = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded"]
+  if (!validStatuses.includes(status)) {
     throw new Error("Invalid order status")
   }
 
@@ -115,20 +122,26 @@ export async function updateOrderStatusAction(formData: FormData) {
 
   if (existingError) throw new Error(existingError.message)
   if (!existing) throw new Error("Order not found")
-  if (existing.status === "delivered" && status === "cancelled") {
-    throw new Error("Delivered orders cannot be cancelled")
+
+  const terminalStatuses: OrderStatus[] = ["delivered", "refunded"]
+  if (terminalStatuses.includes(existing.status as OrderStatus)) {
+    throw new Error(`${existing.status} orders cannot be transitioned to another status`)
+  }
+
+  const paymentStatusMap: Record<OrderStatus, PaymentStatus> = {
+    pending: "pending",
+    processing: "authorized",
+    shipped: "captured",
+    delivered: "captured",
+    cancelled: "failed",
+    refunded: "refunded",
   }
 
   const { error } = await supabase
     .from("orders")
     .update({
       status,
-      payment_status:
-        status === "delivered"
-          ? "captured"
-          : status === "cancelled"
-            ? "failed"
-            : "pending",
+      payment_status: paymentStatusMap[status],
     })
     .eq("id", id)
 
@@ -139,6 +152,7 @@ export async function updateOrderStatusAction(formData: FormData) {
 }
 
 export async function deleteOrderAction(formData: FormData) {
+  await requireAdmin()
   const id = String(formData.get("id") ?? "")
   if (!id) throw new Error("Missing order id")
 
@@ -213,8 +227,8 @@ async function upsertOrder(formData: FormData, orderId?: string) {
 }
 
 function normalizeSimpleStatus(value: string): OrderStatus {
-  if (value === "delivered" || value === "cancelled") return value
-  return "pending"
+  const valid: OrderStatus[] = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded"]
+  return valid.includes(value as OrderStatus) ? (value as OrderStatus) : "pending"
 }
 
 function mapOrder(row: SupabaseOrderRow): Order {

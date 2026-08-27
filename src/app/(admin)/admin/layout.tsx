@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, Menu, X, Store, Newspaper, MessageSquareQuote } from "lucide-react"
+import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, Menu, X, Store, Newspaper, MessageSquareQuote, Tag, FolderTree } from "lucide-react"
 import { useAuthGuard } from "@/hooks/use-auth-guard"
 import { useAuthStore } from "@/store/auth"
 import { usePathname } from "next/navigation"
@@ -12,6 +12,8 @@ import type { ReactNode } from "react"
 const adminNav = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Products", href: "/admin/products", icon: ShoppingBag },
+  { name: "Brands", href: "/admin/brands", icon: Tag },
+  { name: "Categories", href: "/admin/categories", icon: FolderTree },
   { name: "Orders", href: "/admin/orders", icon: Package },
   { name: "Blog", href: "/admin/blog", icon: Newspaper },
   { name: "Testimonials", href: "/admin/testimonials", icon: MessageSquareQuote },
@@ -169,7 +171,7 @@ export default function AdminLayout({
             Admin Portal
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Manage catalog, orders, blog, testimonials, customers, and fulfilment.
+            Manage catalog, brands, categories, orders, blog, testimonials, customers, and fulfilment.
           </p>
         </div>
         <nav className="flex-1 space-y-1 px-4">

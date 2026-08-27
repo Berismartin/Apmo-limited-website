@@ -15,19 +15,19 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 
-interface DeleteBlogDialogProps {
-  postId: string
-  postTitle: string
+interface DeleteBrandDialogProps {
+  brandId: string
+  brandName: string
   deleteAction: (formData: FormData) => void
   triggerNode?: React.ReactElement
 }
 
-export function DeleteBlogDialog({
-  postId,
-  postTitle,
+export function DeleteBrandDialog({
+  brandId,
+  brandName,
   deleteAction,
   triggerNode,
-}: DeleteBlogDialogProps) {
+}: DeleteBrandDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -38,10 +38,10 @@ export function DeleteBlogDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete this post?</DialogTitle>
+          <DialogTitle>Delete this brand?</DialogTitle>
           <DialogDescription>
-            This cannot be undone. <strong>{postTitle}</strong> will be removed from the
-            admin and the public blog.
+            This cannot be undone. <strong>{brandName}</strong> will be
+            permanently deleted.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -55,18 +55,18 @@ export function DeleteBlogDialog({
                 await deleteAction(formData)
               } catch (err) {
                 if (err instanceof Error && err.message === "NEXT_REDIRECT") {
-                  toast.success("Blog post deleted")
+                  toast.success("Brand deleted")
                   throw err
                 }
-                toast.error(err instanceof Error ? err.message : "Failed to delete post")
+                toast.error(err instanceof Error ? err.message : "Failed to delete brand")
                 setIsDeleting(false)
               }
             }}
           >
-            <input type="hidden" name="id" value={postId} />
+            <input type="hidden" name="id" value={brandId} />
             <Button type="submit" variant="destructive" disabled={isDeleting}>
               {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Delete post
+              Delete brand
             </Button>
           </form>
         </DialogFooter>

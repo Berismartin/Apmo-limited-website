@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -48,9 +49,18 @@ export function DeleteTestimonialDialog({
             Cancel
           </DialogClose>
           <form
-            action={(formData) => {
+            action={async (formData) => {
               setIsDeleting(true)
-              deleteAction(formData)
+              try {
+                await deleteAction(formData)
+              } catch (err) {
+                if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+                  toast.success("Testimonial deleted")
+                  throw err
+                }
+                toast.error(err instanceof Error ? err.message : "Failed to delete testimonial")
+                setIsDeleting(false)
+              }
             }}
           >
             <input type="hidden" name="id" value={testimonialId} />

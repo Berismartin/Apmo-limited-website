@@ -8,13 +8,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { OrderStatusBadge } from "@/components/ui/order-status-badge"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import { formatDate, formatPrice } from "@/lib/utils"
+import { toast } from "sonner"
 import type { Order, OrderStatus } from "@/types"
 
 const statusOptions: Array<{ value: OrderStatus; label: string }> = [
   { value: "pending", label: "Pending" },
+  { value: "processing", label: "Processing" },
+  { value: "shipped", label: "Shipped" },
   { value: "delivered", label: "Delivered" },
   { value: "cancelled", label: "Cancelled" },
+  { value: "refunded", label: "Refunded" },
 ]
+
+const terminalStatuses: OrderStatus[] = ["delivered", "refunded"]
+
+function statusColorClass(value: OrderStatus, isActive: boolean) {
+  if (isActive) return undefined
+  switch (value) {
+    case "processing":
+      return "border-amber-200 text-amber-700 hover:bg-amber-50"
+    case "shipped":
+      return "border-blue-200 text-blue-700 hover:bg-blue-50"
+    case "delivered":
+      return "border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+    case "cancelled":
+      return "border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-40"
+    case "refunded":
+      return "border-orange-200 text-orange-700 hover:bg-orange-50 disabled:opacity-40"
+    default:
+      return undefined
+  }
+}
 
 interface OrderDetailProps {
   order: Order
@@ -24,13 +48,20 @@ interface OrderDetailProps {
 export function OrderDetail({ order, updateStatusAction }: OrderDetailProps) {
   const [isPending, startTransition] = useTransition()
   const address = order.shippingAddress
+  const isTerminal = terminalStatuses.includes(order.status)
 
   const handleStatus = (status: OrderStatus) => {
     const formData = new FormData()
     formData.set("id", order.id)
     formData.set("status", status)
     startTransition(async () => {
-      await updateStatusAction(formData)
+      try {
+        await updateStatusAction(formData)
+        toast.success("Order status updated")
+      } catch (err) {
+        if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err
+        toast.error(err instanceof Error ? err.message : "Failed to update status")
+      }
     })
   }
 
@@ -51,9 +82,8 @@ export function OrderDetail({ order, updateStatusAction }: OrderDetailProps) {
           <div className="flex flex-wrap gap-2">
             {statusOptions.map((option) => {
               const isActive = order.status === option.value
-              const cannotCancelDelivered =
-                order.status === "delivered" && option.value === "cancelled"
-              const disabled = isPending || isActive || cannotCancelDelivered
+              const cantTransition = isTerminal && !isActive
+              const disabled = isPending || isActive || cantTransition
 
               return (
                 <Button
@@ -61,27 +91,17 @@ export function OrderDetail({ order, updateStatusAction }: OrderDetailProps) {
                   type="button"
                   disabled={disabled}
                   variant={isActive ? "default" : "outline"}
-                  className={
-                    option.value === "cancelled" && !isActive
-                      ? "border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-40"
-                      : option.value === "delivered" && !isActive
-                        ? "border-emerald-200 text-emerald-800 hover:bg-emerald-50"
-                        : undefined
-                  }
+                  className={statusColorClass(option.value, isActive)}
                   onClick={() => handleStatus(option.value)}
                 >
-                  {isActive
-                    ? `${option.label} (current)`
-                    : cannotCancelDelivered
-                      ? "Cancel (locked)"
-                      : option.label}
+                  {isActive ? `${option.label} (current)` : option.label}
                 </Button>
               )
             })}
           </div>
-          {order.status === "delivered" ? (
+          {isTerminal ? (
             <p className="text-xs text-muted-foreground">
-              Delivered orders can’t be cancelled.
+              {order.status.charAt(0).toUpperCase() + order.status.slice(1)} orders cannot be transitioned to another status.
             </p>
           ) : null}
         </CardContent>

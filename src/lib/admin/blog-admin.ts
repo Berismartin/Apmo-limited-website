@@ -11,6 +11,7 @@ import {
 import { uploadProductImagesFromFormData } from "./product-image-storage"
 import type { BlogPost } from "@/types"
 import { jsonBlogRepository } from "@/lib/repositories/json-blog-repository"
+import { requireAdmin } from "./require-admin"
 
 export interface AdminBlogState {
   posts: BlogPost[]
@@ -19,6 +20,7 @@ export interface AdminBlogState {
 }
 
 export async function getAdminBlogState(): Promise<AdminBlogState> {
+  await requireAdmin()
   try {
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase
@@ -44,6 +46,7 @@ export async function getAdminBlogState(): Promise<AdminBlogState> {
 }
 
 export async function getAdminBlogPost(id: string): Promise<BlogPost | null> {
+  await requireAdmin()
   try {
     const supabase = createSupabaseAdminClient()
     const { data, error } = await supabase
@@ -61,12 +64,14 @@ export async function getAdminBlogPost(id: string): Promise<BlogPost | null> {
 }
 
 export async function createBlogPostAction(formData: FormData) {
+  await requireAdmin()
   const id = await upsertBlogPost(formData)
   revalidateBlog()
   redirect(`/admin/blog/${id}`)
 }
 
 export async function updateBlogPostAction(formData: FormData) {
+  await requireAdmin()
   const id = String(formData.get("id") ?? "")
   if (!id) throw new Error("Missing blog post id")
 
@@ -76,6 +81,7 @@ export async function updateBlogPostAction(formData: FormData) {
 }
 
 export async function deleteBlogPostAction(formData: FormData) {
+  await requireAdmin()
   const id = String(formData.get("id") ?? "")
   if (!id) throw new Error("Missing blog post id")
 

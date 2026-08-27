@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,6 +14,7 @@ import { loginSchema } from "@/lib/validators"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const login = useAuthStore((s) => s.login)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -30,7 +31,13 @@ export default function LoginPage() {
     const success = await login(email, password)
     if (success) {
       toast.success("Welcome back!")
-      router.push("/admin")
+      const user = useAuthStore.getState().user
+      const redirect = searchParams.get("redirect")
+      if (redirect) {
+        router.push(redirect)
+      } else {
+        router.push(user?.role === "admin" ? "/admin" : "/")
+      }
     } else {
       toast.error("Invalid email or password")
     }
