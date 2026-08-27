@@ -12,6 +12,7 @@ import { uploadProductImagesFromFormData } from "./product-image-storage"
 import type { BlogPost } from "@/types"
 import { jsonBlogRepository } from "@/lib/repositories/json-blog-repository"
 import { requireAdmin } from "./require-admin"
+import { runAdminMutation } from "./mutation-result"
 
 export interface AdminBlogState {
   posts: BlogPost[]
@@ -62,31 +63,40 @@ export async function getAdminBlogPost(id: string): Promise<BlogPost | null> {
 }
 
 export async function createBlogPostAction(formData: FormData) {
-  await requireAdmin()
-  const id = await upsertBlogPost(formData)
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    id = await upsertBlogPost(formData)
+  })
+  if (result?.error) return result
   revalidateBlog()
   redirect(`/admin/blog/${id}`)
 }
 
 export async function updateBlogPostAction(formData: FormData) {
-  await requireAdmin()
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing blog post id")
-
-  await upsertBlogPost(formData, id)
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing blog post id")
+    await upsertBlogPost(formData, id)
+  })
+  if (result?.error) return result
   revalidateBlog()
   redirect(`/admin/blog/${id}`)
 }
 
 export async function deleteBlogPostAction(formData: FormData) {
-  await requireAdmin()
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing blog post id")
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    const id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing blog post id")
 
-  const supabase = createSupabaseAdminClient()
-  const { error } = await supabase.from("blog_posts").delete().eq("id", id)
-  if (error) throw new Error(error.message)
-
+    const supabase = createSupabaseAdminClient()
+    const { error } = await supabase.from("blog_posts").delete().eq("id", id)
+    if (error) throw new Error(error.message)
+  })
+  if (result?.error) return result
   revalidateBlog()
   redirect("/admin/blog")
 }

@@ -5,8 +5,10 @@ import Image from "next/image"
 import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, Menu, X, Store, Newspaper, MessageSquareQuote, Tag, FolderTree } from "lucide-react"
 import { useAuthGuard } from "@/hooks/use-auth-guard"
 import { useAuthStore } from "@/store/auth"
+import { createSupabaseBrowserClient } from "@/lib/supabase/client"
+import { writeAuthCookie } from "@/lib/auth-cookie"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { ReactNode } from "react"
 
 const adminNav = [
@@ -132,6 +134,17 @@ export default function AdminLayout({
   children: ReactNode
 }) {
   const { user, isReady } = useAuthGuard()
+
+  useEffect(() => {
+    try {
+      const supabase = createSupabaseBrowserClient()
+      void supabase.auth.getSession().then(({ data }) => {
+        writeAuthCookie(data.session?.access_token ?? null)
+      })
+    } catch {
+      // Supabase not configured
+    }
+  }, [])
 
   if (!isReady) return null
 

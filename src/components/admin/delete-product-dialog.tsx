@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
+import type { MutationResult } from "@/lib/admin/mutation-result"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,7 +19,7 @@ import {
 interface DeleteProductDialogProps {
   productId: string
   productName: string
-  deleteAction: (formData: FormData) => void
+  deleteAction: (formData: FormData) => Promise<MutationResult | void>
   triggerNode?: React.ReactElement
 }
 
@@ -50,16 +51,11 @@ export function DeleteProductDialog({
           <form
             action={async (formData) => {
               setIsDeleting(true)
-              try {
-                await deleteAction(formData)
-              } catch (err) {
-                if (err instanceof Error && err.message === "NEXT_REDIRECT") {
-                  toast.success("Product deleted")
-                  throw err
-                }
-                toast.error(err instanceof Error ? err.message : "Failed to delete product")
-                setIsDeleting(false)
-              }
+              const ok = await submitAdminMutation(() => deleteAction(formData), {
+                success: "Product deleted",
+                failure: "Failed to delete product",
+              })
+              if (!ok) setIsDeleting(false)
             }}
           >
             <input type="hidden" name="id" value={productId} />

@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "sonner"
 import { slugify } from "@/lib/utils"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
+import type { MutationResult } from "@/lib/admin/mutation-result"
 import type { Brand } from "@/types"
 
 interface BrandFormProps {
-  action: (formData: FormData) => Promise<void>
+  action: (formData: FormData) => Promise<MutationResult | void>
   brand?: Brand | null
   submitLabel: string
 }
@@ -24,15 +25,10 @@ export function BrandForm({ action, brand, submitLabel }: BrandFormProps) {
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      try {
-        await action(formData)
-      } catch (err) {
-        if (err instanceof Error && err.message === "NEXT_REDIRECT") {
-          toast.success("Brand saved successfully")
-          throw err
-        }
-        toast.error(err instanceof Error ? err.message : "Failed to save brand")
-      }
+      await submitAdminMutation(() => action(formData), {
+        success: "Brand saved successfully",
+        failure: "Failed to save brand",
+      })
     })
   }
 

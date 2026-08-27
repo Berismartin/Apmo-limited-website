@@ -11,6 +11,7 @@ import { jsonTestimonialRepository } from "@/lib/repositories/json-testimonial-r
 import { uploadProductImagesFromFormData } from "./product-image-storage"
 import type { Testimonial } from "@/types"
 import { requireAdmin } from "./require-admin"
+import { runAdminMutation } from "./mutation-result"
 
 export interface AdminTestimonialsState {
   testimonials: Testimonial[]
@@ -62,31 +63,40 @@ export async function getAdminTestimonial(id: string): Promise<Testimonial | nul
 }
 
 export async function createTestimonialAction(formData: FormData) {
-  await requireAdmin()
-  const id = await upsertTestimonial(formData)
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    id = await upsertTestimonial(formData)
+  })
+  if (result?.error) return result
   revalidateTestimonials()
   redirect(`/admin/testimonials/${id}`)
 }
 
 export async function updateTestimonialAction(formData: FormData) {
-  await requireAdmin()
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing testimonial id")
-
-  await upsertTestimonial(formData, id)
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing testimonial id")
+    await upsertTestimonial(formData, id)
+  })
+  if (result?.error) return result
   revalidateTestimonials()
   redirect(`/admin/testimonials/${id}`)
 }
 
 export async function deleteTestimonialAction(formData: FormData) {
-  await requireAdmin()
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing testimonial id")
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    const id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing testimonial id")
 
-  const supabase = createSupabaseAdminClient()
-  const { error } = await supabase.from("testimonials").delete().eq("id", id)
-  if (error) throw new Error(error.message)
-
+    const supabase = createSupabaseAdminClient()
+    const { error } = await supabase.from("testimonials").delete().eq("id", id)
+    if (error) throw new Error(error.message)
+  })
+  if (result?.error) return result
   revalidateTestimonials()
   redirect("/admin/testimonials")
 }

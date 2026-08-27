@@ -2,9 +2,9 @@
 
 import { useTransition } from "react"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { updateCustomerRoleAction } from "@/lib/admin/customer-admin"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
 
 interface CustomerRoleFormProps {
   customerId: string
@@ -21,15 +21,13 @@ export function CustomerRoleForm({ customerId, currentRole }: CustomerRoleFormPr
     }
 
     startTransition(async () => {
-      try {
-        const formData = new FormData()
-        formData.set("customer_id", customerId)
-        formData.set("role", newRole)
-        await updateCustomerRoleAction(formData)
-      } catch (error) {
-        if (error instanceof Error && error.message === "NEXT_REDIRECT") throw error
-        toast.error(error instanceof Error ? error.message : "Failed to update role")
-      }
+      const formData = new FormData()
+      formData.set("customer_id", customerId)
+      formData.set("role", newRole)
+      await submitAdminMutation(() => updateCustomerRoleAction(formData), {
+        success: "Customer role updated",
+        failure: "Failed to update role",
+      })
     })
   }
 

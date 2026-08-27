@@ -10,6 +10,7 @@ import {
 } from "@/lib/repositories/supabase-catalog-mappers"
 import type { Brand } from "@/types"
 import { requireAdmin } from "./require-admin"
+import { runAdminMutation } from "./mutation-result"
 
 export async function getAdminBrands(): Promise<Brand[]> {
   const supabase = createSupabaseAdminClient()
@@ -35,57 +36,66 @@ export async function getAdminBrand(id: string): Promise<Brand | null> {
 }
 
 export async function createBrandAction(formData: FormData) {
-  await requireAdmin()
-  const supabase = createSupabaseAdminClient()
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    const supabase = createSupabaseAdminClient()
 
-  const name = requiredText(formData, "name")
-  const slug = slugify(String(formData.get("slug") || name))
-  const description = String(formData.get("description") ?? "").trim()
+    const name = requiredText(formData, "name")
+    const slug = slugify(String(formData.get("slug") || name))
+    const description = String(formData.get("description") ?? "").trim()
 
-  const { data, error } = await supabase
-    .from("brands")
-    .insert({ name, slug, description })
-    .select("id")
-    .single()
+    const { data, error } = await supabase
+      .from("brands")
+      .insert({ name, slug, description })
+      .select("id")
+      .single()
 
-  if (error) throw new Error(error.message)
-
+    if (error) throw new Error(error.message)
+    id = data.id as string
+  })
+  if (result?.error) return result
   revalidateBrands()
-  redirect(`/admin/brands/${data.id}`)
+  redirect(`/admin/brands/${id}`)
 }
 
 export async function updateBrandAction(formData: FormData) {
-  await requireAdmin()
-  const supabase = createSupabaseAdminClient()
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    const supabase = createSupabaseAdminClient()
 
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing brand id")
+    id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing brand id")
 
-  const name = requiredText(formData, "name")
-  const slug = slugify(String(formData.get("slug") || name))
-  const description = String(formData.get("description") ?? "").trim()
+    const name = requiredText(formData, "name")
+    const slug = slugify(String(formData.get("slug") || name))
+    const description = String(formData.get("description") ?? "").trim()
 
-  const { error } = await supabase
-    .from("brands")
-    .update({ name, slug, description })
-    .eq("id", id)
+    const { error } = await supabase
+      .from("brands")
+      .update({ name, slug, description })
+      .eq("id", id)
 
-  if (error) throw new Error(error.message)
-
+    if (error) throw new Error(error.message)
+  })
+  if (result?.error) return result
   revalidateBrands()
   redirect(`/admin/brands/${id}`)
 }
 
 export async function deleteBrandAction(formData: FormData) {
-  await requireAdmin()
-  const supabase = createSupabaseAdminClient()
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    const supabase = createSupabaseAdminClient()
 
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing brand id")
+    const id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing brand id")
 
-  const { error } = await supabase.from("brands").delete().eq("id", id)
-  if (error) throw new Error(error.message)
-
+    const { error } = await supabase.from("brands").delete().eq("id", id)
+    if (error) throw new Error(error.message)
+  })
+  if (result?.error) return result
   revalidateBrands()
   redirect("/admin/brands")
 }

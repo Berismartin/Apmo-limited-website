@@ -9,12 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageUploader } from "@/components/admin/image-uploader"
-import { toast } from "sonner"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
 import { slugify } from "@/lib/utils"
+import type { MutationResult } from "@/lib/admin/mutation-result"
 import type { Category } from "@/types"
 
 interface CategoryFormProps {
-  action: (formData: FormData) => Promise<void>
+  action: (formData: FormData) => Promise<MutationResult | void>
   category?: Category | null
   categories: Category[]
   submitLabel: string
@@ -33,17 +34,10 @@ export function CategoryForm({
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      try {
-        await action(formData)
-      } catch (err) {
-        if (err instanceof Error && err.message === "NEXT_REDIRECT") {
-          toast.success("Category saved successfully")
-          throw err
-        }
-        toast.error(
-          err instanceof Error ? err.message : "Failed to save category"
-        )
-      }
+      await submitAdminMutation(() => action(formData), {
+        success: "Category saved successfully",
+        failure: "Failed to save category",
+      })
     })
   }
 

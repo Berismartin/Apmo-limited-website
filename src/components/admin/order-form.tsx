@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { toast } from "sonner"
 import { siteConfig } from "@/lib/config"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
+import type { MutationResult } from "@/lib/admin/mutation-result"
 
 interface OrderFormProps {
-  action: (formData: FormData) => Promise<void>
+  action: (formData: FormData) => Promise<MutationResult | void>
   submitLabel: string
 }
 
@@ -21,15 +22,10 @@ export function OrderForm({ action, submitLabel }: OrderFormProps) {
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      try {
-        await action(formData)
-      } catch (err) {
-        if (err instanceof Error && err.message === "NEXT_REDIRECT") {
-          toast.success("Order created successfully")
-          throw err
-        }
-        toast.error(err instanceof Error ? err.message : "Failed to save order")
-      }
+      await submitAdminMutation(() => action(formData), {
+        success: "Order created successfully",
+        failure: "Failed to save order",
+      })
     })
   }
 

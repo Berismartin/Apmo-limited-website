@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
+import type { MutationResult } from "@/lib/admin/mutation-result"
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import {
 interface DeleteOrderDialogProps {
   orderId: string
   orderName: string
-  deleteAction: (formData: FormData) => void
+  deleteAction: (formData: FormData) => Promise<MutationResult | void>
   triggerNode?: React.ReactElement
 }
 
@@ -50,16 +51,11 @@ export function DeleteOrderDialog({
           <form
             action={async (formData) => {
               setIsDeleting(true)
-              try {
-                await deleteAction(formData)
-              } catch (err) {
-                if (err instanceof Error && err.message === "NEXT_REDIRECT") {
-                  toast.success("Order deleted")
-                  throw err
-                }
-                toast.error(err instanceof Error ? err.message : "Failed to delete order")
-                setIsDeleting(false)
-              }
+              const ok = await submitAdminMutation(() => deleteAction(formData), {
+                success: "Order deleted",
+                failure: "Failed to delete order",
+              })
+              if (!ok) setIsDeleting(false)
             }}
           >
             <input type="hidden" name="id" value={orderId} />

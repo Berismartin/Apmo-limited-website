@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
+import type { MutationResult } from "@/lib/admin/mutation-result"
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import {
 interface DeleteBlogDialogProps {
   postId: string
   postTitle: string
-  deleteAction: (formData: FormData) => void
+  deleteAction: (formData: FormData) => Promise<MutationResult | void>
   triggerNode?: React.ReactElement
 }
 
@@ -51,16 +52,11 @@ export function DeleteBlogDialog({
           <form
             action={async (formData) => {
               setIsDeleting(true)
-              try {
-                await deleteAction(formData)
-              } catch (err) {
-                if (err instanceof Error && err.message === "NEXT_REDIRECT") {
-                  toast.success("Blog post deleted")
-                  throw err
-                }
-                toast.error(err instanceof Error ? err.message : "Failed to delete post")
-                setIsDeleting(false)
-              }
+              const ok = await submitAdminMutation(() => deleteAction(formData), {
+                success: "Blog post deleted",
+                failure: "Failed to delete post",
+              })
+              if (!ok) setIsDeleting(false)
             }}
           >
             <input type="hidden" name="id" value={postId} />

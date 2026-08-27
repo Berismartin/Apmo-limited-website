@@ -5,6 +5,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server"
 import { siteConfig } from "@/lib/config"
 import type { OrderStatus } from "@/types"
 import { requireAdmin } from "./require-admin"
+import { runAdminMutation } from "./mutation-result"
 
 interface CustomerRow {
   id: string
@@ -125,28 +126,30 @@ export async function getAdminCustomer(id: string): Promise<AdminCustomerDetail 
 }
 
 export async function updateCustomerRoleAction(formData: FormData) {
-  const admin = await requireAdmin()
-  const supabase = createSupabaseAdminClient()
+  return runAdminMutation(async () => {
+    const admin = await requireAdmin()
+    const supabase = createSupabaseAdminClient()
 
-  const customerId = String(formData.get("customer_id") ?? "").trim()
-  const newRole = String(formData.get("role") ?? "").trim()
+    const customerId = String(formData.get("customer_id") ?? "").trim()
+    const newRole = String(formData.get("role") ?? "").trim()
 
-  if (!customerId) throw new Error("Customer ID is required")
-  if (newRole !== "customer" && newRole !== "admin") {
-    throw new Error("Role must be 'customer' or 'admin'")
-  }
+    if (!customerId) throw new Error("Customer ID is required")
+    if (newRole !== "customer" && newRole !== "admin") {
+      throw new Error("Role must be 'customer' or 'admin'")
+    }
 
-  if (customerId === admin.id) {
-    throw new Error("You cannot change your own role")
-  }
+    if (customerId === admin.id) {
+      throw new Error("You cannot change your own role")
+    }
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({ role: newRole })
-    .eq("id", customerId)
+    const { error } = await supabase
+      .from("profiles")
+      .update({ role: newRole })
+      .eq("id", customerId)
 
-  if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message)
 
-  revalidatePath("/admin/customers")
-  revalidatePath(`/admin/customers/${customerId}`)
+    revalidatePath("/admin/customers")
+    revalidatePath(`/admin/customers/${customerId}`)
+  })
 }

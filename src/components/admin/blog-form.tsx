@@ -9,11 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageUploader } from "@/components/admin/image-uploader"
-import { toast } from "sonner"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
 import type { BlogPost } from "@/types"
 
 interface BlogFormProps {
-  action: (formData: FormData) => Promise<void>
+  action: (formData: FormData) => Promise<import("@/lib/admin/mutation-result").MutationResult | void>
   post?: BlogPost | null
   submitLabel: string
 }
@@ -31,15 +31,10 @@ export function BlogForm({ action, post, submitLabel }: BlogFormProps) {
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      try {
-        await action(formData)
-      } catch (err) {
-        if (err instanceof Error && err.message === "NEXT_REDIRECT") {
-          toast.success("Blog post saved successfully")
-          throw err
-        }
-        toast.error(err instanceof Error ? err.message : "Failed to save blog post")
-      }
+      await submitAdminMutation(() => action(formData), {
+        success: "Blog post saved successfully",
+        failure: "Failed to save blog post",
+      })
     })
   }
 

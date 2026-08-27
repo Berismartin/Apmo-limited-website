@@ -3,19 +3,8 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
+import { writeAuthCookie } from "@/lib/auth-cookie"
 import type { User, Address } from "@/types"
-
-const AUTH_COOKIE = "apmo-auth-token"
-
-function setAuthCookie(token: string | null) {
-  if (typeof document === "undefined") return
-  if (token) {
-    const secure = window.location.protocol === "https:" ? "; secure" : ""
-    document.cookie = `${AUTH_COOKIE}=${token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax${secure}`
-  } else {
-    document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0`
-  }
-}
 
 interface AuthState {
   user: User | null
@@ -44,7 +33,7 @@ export const useAuthStore = create<AuthState>()(
           
           if (error || !data.user) return false
 
-          setAuthCookie(data.session?.access_token ?? null)
+          writeAuthCookie(data.session?.access_token ?? null)
 
           const { data: profile } = await supabase
             .from("profiles")
@@ -86,7 +75,7 @@ export const useAuthStore = create<AuthState>()(
           
           if (error || !authData.user) return false
 
-          setAuthCookie(authData.session?.access_token ?? null)
+          writeAuthCookie(authData.session?.access_token ?? null)
 
           const user: User = {
             id: authData.user.id,
@@ -152,7 +141,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (err) {
           console.error(err)
         }
-        setAuthCookie(null)
+        writeAuthCookie(null)
         set({ user: null, isAuthenticated: false })
       },
 
@@ -205,7 +194,7 @@ if (typeof window !== "undefined") {
   try {
     const supabase = createSupabaseBrowserClient()
     supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthCookie(session?.access_token ?? null)
+      writeAuthCookie(session?.access_token ?? null)
     })
   } catch {
     // Supabase not configured — skip listener

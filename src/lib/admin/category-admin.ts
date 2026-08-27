@@ -11,6 +11,7 @@ import {
 import type { Category } from "@/types"
 import { uploadProductImagesFromFormData } from "./product-image-storage"
 import { requireAdmin } from "./require-admin"
+import { runAdminMutation } from "./mutation-result"
 
 export async function getAdminCategories(): Promise<Category[]> {
   const supabase = createSupabaseAdminClient()
@@ -36,32 +37,41 @@ export async function getAdminCategory(id: string): Promise<Category | null> {
 }
 
 export async function createCategoryAction(formData: FormData) {
-  await requireAdmin()
-  const id = await upsertCategory(formData)
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    id = await upsertCategory(formData)
+  })
+  if (result?.error) return result
   revalidateCategories()
   redirect(`/admin/categories/${id}`)
 }
 
 export async function updateCategoryAction(formData: FormData) {
-  await requireAdmin()
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing category id")
-
-  await upsertCategory(formData, id)
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing category id")
+    await upsertCategory(formData, id)
+  })
+  if (result?.error) return result
   revalidateCategories()
   redirect(`/admin/categories/${id}`)
 }
 
 export async function deleteCategoryAction(formData: FormData) {
-  await requireAdmin()
-  const supabase = createSupabaseAdminClient()
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    const supabase = createSupabaseAdminClient()
 
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing category id")
+    const id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing category id")
 
-  const { error } = await supabase.from("categories").delete().eq("id", id)
-  if (error) throw new Error(error.message)
-
+    const { error } = await supabase.from("categories").delete().eq("id", id)
+    if (error) throw new Error(error.message)
+  })
+  if (result?.error) return result
   revalidateCategories()
   redirect("/admin/categories")
 }

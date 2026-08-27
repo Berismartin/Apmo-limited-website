@@ -16,6 +16,7 @@ import {
 import type { Brand, Category, Product, ProductOption, ProductStatus } from "@/types"
 import { uploadProductImagesFromFormData } from "./product-image-storage"
 import { requireAdmin } from "./require-admin"
+import { runAdminMutation } from "./mutation-result"
 
 const adminProductSelect = `
   *,
@@ -71,62 +72,70 @@ export async function getAdminProduct(id: string): Promise<Product | null> {
 }
 
 export async function createProductAction(formData: FormData) {
-  await requireAdmin()
-  await upsertProduct(formData)
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    await upsertProduct(formData)
+  })
+  if (result?.error) return result
   revalidateCatalog()
   redirect("/admin/products")
 }
 
 export async function updateProductAction(formData: FormData) {
-  await requireAdmin()
-  const productId = String(formData.get("id") ?? "")
-  if (!productId) throw new Error("Missing product id")
-
-  await upsertProduct(formData, productId)
+  let productId = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    productId = String(formData.get("id") ?? "")
+    if (!productId) throw new Error("Missing product id")
+    await upsertProduct(formData, productId)
+  })
+  if (result?.error) return result
   revalidateCatalog()
   redirect(`/admin/products/${productId}`)
 }
 
 export async function deleteProductAction(formData: FormData) {
-  await requireAdmin()
-  const productId = String(formData.get("id") ?? "")
-  if (!productId) throw new Error("Missing product id")
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    const productId = String(formData.get("id") ?? "")
+    if (!productId) throw new Error("Missing product id")
 
-  const supabase = createSupabaseAdminClient()
-  const { error } = await supabase.from("products").delete().eq("id", productId)
-  if (error) throw new Error(error.message)
-
+    const supabase = createSupabaseAdminClient()
+    const { error } = await supabase.from("products").delete().eq("id", productId)
+    if (error) throw new Error(error.message)
+  })
+  if (result?.error) return result
   revalidateCatalog()
   redirect("/admin/products")
 }
 
 export async function deleteProductImageAction(productId: string, imageUrl: string) {
-  await requireAdmin()
-  const supabase = createSupabaseAdminClient()
+  return runAdminMutation(async () => {
+    await requireAdmin()
+    const supabase = createSupabaseAdminClient()
 
-  // Remove the db row
-  const { error } = await supabase
-    .from("product_images")
-    .delete()
-    .eq("product_id", productId)
-    .eq("url", imageUrl)
-  if (error) throw new Error(error.message)
+    const { error } = await supabase
+      .from("product_images")
+      .delete()
+      .eq("product_id", productId)
+      .eq("url", imageUrl)
+    if (error) throw new Error(error.message)
 
-  // Also remove from storage if it lives in our bucket
-  try {
-    const { productImageBucket } = await import("./product-image-storage")
-    const { data } = supabase.storage.from(productImageBucket).getPublicUrl("")
-    const bucketBase = data.publicUrl.replace(/\/$/, "")
-    if (imageUrl.startsWith(bucketBase)) {
-      const storagePath = imageUrl.slice(bucketBase.length + 1)
-      await supabase.storage.from(productImageBucket).remove([storagePath])
+    try {
+      const { productImageBucket } = await import("./product-image-storage")
+      const { data } = supabase.storage.from(productImageBucket).getPublicUrl("")
+      const bucketBase = data.publicUrl.replace(/\/$/, "")
+      if (imageUrl.startsWith(bucketBase)) {
+        const storagePath = imageUrl.slice(bucketBase.length + 1)
+        await supabase.storage.from(productImageBucket).remove([storagePath])
+      }
+    } catch {
+      // Non-fatal: storage cleanup failure shouldn't block the db delete
     }
-  } catch {
-    // Non-fatal: storage cleanup failure shouldn't block the db delete
-  }
 
-  revalidateCatalog()
-  revalidatePath(`/admin/products/${productId}`)
+    revalidateCatalog()
+    revalidatePath(`/admin/products/${productId}`)
+  })
 }
 
 async function upsertProduct(formData: FormData, productId?: string) {

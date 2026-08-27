@@ -14,6 +14,7 @@ import type {
   ProductImage,
 } from "@/types"
 import { requireAdmin } from "./require-admin"
+import { runAdminMutation } from "./mutation-result"
 
 interface SupabaseOrderLineItemRow {
   id: string
@@ -84,80 +85,92 @@ export async function getAdminOrder(id: string): Promise<Order | null> {
 }
 
 export async function createOrderAction(formData: FormData) {
-  await requireAdmin()
-  const id = await upsertOrder(formData)
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    id = await upsertOrder(formData)
+  })
+  if (result?.error) return result
   revalidateOrders()
   redirect(`/admin/orders/${id}`)
 }
 
 export async function updateOrderAction(formData: FormData) {
-  await requireAdmin()
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing order id")
-  await upsertOrder(formData, id)
+  let id = ""
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing order id")
+    await upsertOrder(formData, id)
+  })
+  if (result?.error) return result
   revalidateOrders()
   redirect(`/admin/orders/${id}`)
 }
 
 export async function updateOrderStatusAction(formData: FormData) {
-  await requireAdmin()
-  const id = String(formData.get("id") ?? "")
-  const status = String(formData.get("status") ?? "") as OrderStatus
+  return runAdminMutation(async () => {
+    await requireAdmin()
+    const id = String(formData.get("id") ?? "")
+    const status = String(formData.get("status") ?? "") as OrderStatus
 
-  if (!id) throw new Error("Missing order id")
-  const validStatuses: OrderStatus[] = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded"]
-  if (!validStatuses.includes(status)) {
-    throw new Error("Invalid order status")
-  }
+    if (!id) throw new Error("Missing order id")
+    const validStatuses: OrderStatus[] = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded"]
+    if (!validStatuses.includes(status)) {
+      throw new Error("Invalid order status")
+    }
 
-  const supabase = createSupabaseAdminClient()
+    const supabase = createSupabaseAdminClient()
 
-  const { data: existing, error: existingError } = await supabase
-    .from("orders")
-    .select("status")
-    .eq("id", id)
-    .maybeSingle()
+    const { data: existing, error: existingError } = await supabase
+      .from("orders")
+      .select("status")
+      .eq("id", id)
+      .maybeSingle()
 
-  if (existingError) throw new Error(existingError.message)
-  if (!existing) throw new Error("Order not found")
+    if (existingError) throw new Error(existingError.message)
+    if (!existing) throw new Error("Order not found")
 
-  const terminalStatuses: OrderStatus[] = ["delivered", "refunded"]
-  if (terminalStatuses.includes(existing.status as OrderStatus)) {
-    throw new Error(`${existing.status} orders cannot be transitioned to another status`)
-  }
+    const terminalStatuses: OrderStatus[] = ["delivered", "refunded"]
+    if (terminalStatuses.includes(existing.status as OrderStatus)) {
+      throw new Error(`${existing.status} orders cannot be transitioned to another status`)
+    }
 
-  const paymentStatusMap: Record<OrderStatus, PaymentStatus> = {
-    pending: "pending",
-    processing: "authorized",
-    shipped: "captured",
-    delivered: "captured",
-    cancelled: "failed",
-    refunded: "refunded",
-  }
+    const paymentStatusMap: Record<OrderStatus, PaymentStatus> = {
+      pending: "pending",
+      processing: "authorized",
+      shipped: "captured",
+      delivered: "captured",
+      cancelled: "failed",
+      refunded: "refunded",
+    }
 
-  const { error } = await supabase
-    .from("orders")
-    .update({
-      status,
-      payment_status: paymentStatusMap[status],
-    })
-    .eq("id", id)
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        status,
+        payment_status: paymentStatusMap[status],
+      })
+      .eq("id", id)
 
-  if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message)
 
-  revalidateOrders()
-  revalidatePath(`/admin/orders/${id}`)
+    revalidateOrders()
+    revalidatePath(`/admin/orders/${id}`)
+  })
 }
 
 export async function deleteOrderAction(formData: FormData) {
-  await requireAdmin()
-  const id = String(formData.get("id") ?? "")
-  if (!id) throw new Error("Missing order id")
+  const result = await runAdminMutation(async () => {
+    await requireAdmin()
+    const id = String(formData.get("id") ?? "")
+    if (!id) throw new Error("Missing order id")
 
-  const supabase = createSupabaseAdminClient()
-  const { error } = await supabase.from("orders").delete().eq("id", id)
-  if (error) throw new Error(error.message)
-
+    const supabase = createSupabaseAdminClient()
+    const { error } = await supabase.from("orders").delete().eq("id", id)
+    if (error) throw new Error(error.message)
+  })
+  if (result?.error) return result
   revalidateOrders()
   redirect("/admin/orders")
 }

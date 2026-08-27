@@ -9,14 +9,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageUploader } from "@/components/admin/image-uploader"
-import { toast } from "sonner"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
 import { siteConfig } from "@/lib/config"
 import { normalizeCurrencyCode } from "@/lib/utils"
+import type { MutationResult } from "@/lib/admin/mutation-result"
 import type { Brand, Category, Product } from "@/types"
 
 interface ProductFormProps {
-  action: (formData: FormData) => Promise<void>
-  deleteImageAction?: (productId: string, imageUrl: string) => Promise<void>
+  action: (formData: FormData) => Promise<MutationResult | void>
+  deleteImageAction?: (productId: string, imageUrl: string) => Promise<MutationResult | void>
   brands: Brand[]
   categories: Category[]
   product?: Product | null
@@ -44,7 +45,11 @@ export function ProductForm({
         new Promise<void>((resolve, reject) => {
           startTransition(async () => {
             try {
-              await deleteImageAction(product.id, url)
+              const result = await deleteImageAction(product.id, url)
+              if (result?.error) {
+                reject(new Error(result.error))
+                return
+              }
               resolve()
             } catch (err) {
               reject(err)
@@ -55,15 +60,10 @@ export function ProductForm({
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      try {
-        await action(formData)
-      } catch (err) {
-        if (err instanceof Error && err.message === "NEXT_REDIRECT") {
-          toast.success("Product saved successfully")
-          throw err
-        }
-        toast.error(err instanceof Error ? err.message : "Failed to save product")
-      }
+      await submitAdminMutation(() => action(formData), {
+        success: "Product saved successfully",
+        failure: "Failed to save product",
+      })
     })
   }
 

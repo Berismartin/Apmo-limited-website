@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { OrderStatusBadge } from "@/components/ui/order-status-badge"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import { formatDate, formatPrice } from "@/lib/utils"
-import { toast } from "sonner"
 import type { Order, OrderStatus } from "@/types"
+import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
+import type { MutationResult } from "@/lib/admin/mutation-result"
 
 const statusOptions: Array<{ value: OrderStatus; label: string }> = [
   { value: "pending", label: "Pending" },
@@ -43,7 +44,7 @@ function statusColorClass(value: OrderStatus, isActive: boolean) {
 
 interface OrderDetailProps {
   order: Order
-  updateStatusAction: (formData: FormData) => Promise<void>
+  updateStatusAction: (formData: FormData) => Promise<MutationResult | void>
 }
 
 export function OrderDetail({ order, updateStatusAction }: OrderDetailProps) {
@@ -56,13 +57,10 @@ export function OrderDetail({ order, updateStatusAction }: OrderDetailProps) {
     formData.set("id", order.id)
     formData.set("status", status)
     startTransition(async () => {
-      try {
-        await updateStatusAction(formData)
-        toast.success("Order status updated")
-      } catch (err) {
-        if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err
-        toast.error(err instanceof Error ? err.message : "Failed to update status")
-      }
+      await submitAdminMutation(() => updateStatusAction(formData), {
+        success: "Order status updated",
+        failure: "Failed to update status",
+      })
     })
   }
 
