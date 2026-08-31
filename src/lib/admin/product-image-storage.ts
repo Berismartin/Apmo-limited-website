@@ -1,4 +1,4 @@
-import sharp from "sharp"
+import type sharpType from "sharp"
 import { createSupabaseAdminClient } from "@/lib/supabase/server"
 import { MAX_IMAGE_UPLOAD_BYTES } from "@/lib/constants"
 import { slugify } from "@/lib/utils"
@@ -31,38 +31,89 @@ interface PreparedImage {
   height?: number
 }
 
+// sharp ships a platform-specific native binary (libvips). Some hosts run a
+// different OS/arch for the build step than for the running server (or
+// simply never installed the optional platform package), and in that case
+// `sharp` fails to load entirely. Importing it lazily — instead of as a
+// top-level `import sharp from "sharp"` — means that failure only surfaces
+// when an image is actually being uploaded, not on every single page that
+// happens to import this module (which is what made unrelated admin pages
+// 500 the moment this file was touched). The result is cached so we don't
+// retry a broken install on every image in a batch.
+let sharpModulePromise: Promise<typeof sharpType | null> | null = null
+
+function loadSharp(): Promise<typeof sharpType | null> {
+  if (!sharpModulePromise) {
+    sharpModulePromise = import("sharp")
+      .then((mod) => mod.default)
+      .catch((error) => {
+        console.error(
+          "[product-image-storage] sharp failed to load — uploading images " +
+            "without resizing instead of failing the request. This usually " +
+            "means the platform-specific sharp binary isn't installed for " +
+            "this runtime (see https://sharp.pixelplumbing.com/install#cross-platform).",
+          error
+        )
+        return null
+      })
+  }
+  return sharpModulePromise
+}
+
+function extensionFromFile(file: File): string {
+  const fromName = file.name.split(".").pop()
+  if (fromName && fromName.length <= 5 && /^[a-z0-9]+$/i.test(fromName)) {
+    return fromName.toLowerCase()
+  }
+  const fromType = file.type.split("/")[1]
+  return fromType ? fromType.toLowerCase() : "bin"
+}
+
 /**
  * Resize/re-encode an uploaded image before it's stored. Animated GIFs are
- * passed through untouched (sharp would flatten them to a single frame);
- * everything else is downscaled to fit within MAX_IMAGE_DIMENSION and
- * re-encoded as WebP.
+ * passed through untouched (sharp would flatten them to a single frame).
+ * If sharp isn't usable in this environment, or fails on a specific file,
+ * the original file is uploaded as-is rather than failing the upload.
  */
 async function prepareImage(file: File): Promise<PreparedImage> {
   const input = Buffer.from(await file.arrayBuffer())
+  const originalExtension = extensionFromFile(file)
 
   if (file.type === "image/gif") {
     return { buffer: input, contentType: file.type, extension: "gif" }
   }
 
-  const resized = sharp(input, { animated: false })
-    // Respect EXIF orientation before the metadata that encodes it is stripped.
-    .rotate()
-    .resize({
-      width: MAX_IMAGE_DIMENSION,
-      height: MAX_IMAGE_DIMENSION,
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .webp({ quality: WEBP_QUALITY })
+  const sharp = await loadSharp()
+  if (!sharp) {
+    return { buffer: input, contentType: file.type, extension: originalExtension }
+  }
 
-  const { data, info } = await resized.toBuffer({ resolveWithObject: true })
+  try {
+    const { data, info } = await sharp(input, { animated: false })
+      // Respect EXIF orientation before the metadata that encodes it is stripped.
+      .rotate()
+      .resize({
+        width: MAX_IMAGE_DIMENSION,
+        height: MAX_IMAGE_DIMENSION,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer({ resolveWithObject: true })
 
-  return {
-    buffer: data,
-    contentType: "image/webp",
-    extension: "webp",
-    width: info.width,
-    height: info.height,
+    return {
+      buffer: data,
+      contentType: "image/webp",
+      extension: "webp",
+      width: info.width,
+      height: info.height,
+    }
+  } catch (error) {
+    console.error(
+      `[product-image-storage] sharp failed to process "${file.name}" — uploading it unresized.`,
+      error
+    )
+    return { buffer: input, contentType: file.type, extension: originalExtension }
   }
 }
 
