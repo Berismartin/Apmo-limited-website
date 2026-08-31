@@ -61,3 +61,8 @@ export function slugify(str: string): string {
     .replace(/-+/g, "-")
     .trim()
 }
+
+/** Compare slugs ignoring hyphens/underscores, e.g. hair-care === haircare. */
+export function compactSlug(value: string): string {
+  return value.toLowerCase().replace(/[_-]/g, "")
+}

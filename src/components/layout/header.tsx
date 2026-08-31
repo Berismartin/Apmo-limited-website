@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SearchModal } from "@/components/search/search-modal"
 import { cn } from "@/lib/utils"
-import { shopLinks, mobileMenuSections } from "@/lib/navigation"
+import { shopLinksFromCategories, mobileMenuSections } from "@/lib/navigation"
 import { siteConfig } from "@/lib/config"
 import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
@@ -29,6 +29,11 @@ interface HeaderProps {
 
 export function Header({ categories = [] }: HeaderProps) {
   const allCategories = categories
+  const shopNav = shopLinksFromCategories(allCategories)
+  const mobileSections = [
+    { label: "Shop", items: shopNav },
+    ...mobileMenuSections.filter((section) => section.label !== "Shop"),
+  ]
   const t = useTranslations("nav")
   const tCommon = useTranslations("common")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -84,7 +89,7 @@ export function Header({ categories = [] }: HeaderProps) {
             </div>
 
             <nav className="flex flex-1 flex-col overflow-y-auto px-6 pb-8">
-              {mobileMenuSections.map((section, sectionIdx) => (
+              {mobileSections.map((section, sectionIdx) => (
                 <div key={section.label}>
                   {sectionIdx > 0 && <div className="my-4 border-t" />}
                   <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -165,7 +170,7 @@ export function Header({ categories = [] }: HeaderProps) {
           >
             Blog
           </Link>
-          {shopLinks.map((item) => (
+          {shopNav.map((item) => (
             <Link
               key={item.name}
               href={item.href}

@@ -8,6 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { Button } from "@/components/ui/button"
 import { ProductGrid } from "@/components/products/product-grid"
 import { Pagination } from "@/components/products/pagination"
 import type { Category, Product, PaginationMeta } from "@/types"
@@ -39,10 +40,12 @@ export function CategoryView({
   subcategories = [],
   ancestors = [],
 }: CategoryViewProps) {
-  // Full ancestor trail for breadcrumbs — e.g. Shop > Electronics > Headphones
+  const parentTrail = ancestors.filter((cat) => cat.id !== category.id)
+  // Full ancestor trail for breadcrumbs — e.g. Shop > Haircare
   const trail = [
     { name: "Shop", href: "/shop" },
-    ...ancestors.map((c) => ({ name: c.name, href: `/${c.slug}` })),
+    ...parentTrail.map((c) => ({ name: c.name, href: `/${c.slug}` })),
+    { name: category.name, href: `/${category.slug}` },
   ]
 
   return (
@@ -59,23 +62,20 @@ export function CategoryView({
           <BreadcrumbItem>
             <BreadcrumbLink render={<Link href="/shop" />}>Shop</BreadcrumbLink>
           </BreadcrumbItem>
-          {ancestors.map((cat, idx) => {
-            const isLast = idx === ancestors.length - 1
-            return (
-              <div key={cat.id} className="contents">
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  {isLast ? (
-                    <BreadcrumbPage>{cat.name}</BreadcrumbPage>
-                  ) : (
-                    <BreadcrumbLink render={<Link href={`/${cat.slug}`} />}>
-                      {cat.name}
-                    </BreadcrumbLink>
-                  )}
-                </BreadcrumbItem>
-              </div>
-            )
-          })}
+          {parentTrail.map((cat) => (
+            <div key={cat.id} className="contents">
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link href={`/${cat.slug}`} />}>
+                  {cat.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </div>
+          ))}
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{category.name}</BreadcrumbPage>
+          </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
@@ -85,10 +85,12 @@ export function CategoryView({
         {category.description && (
           <p className="mt-2 text-muted-foreground">{category.description}</p>
         )}
-        <p className="mt-1 text-sm text-muted-foreground">
-          {pagination.total}{" "}
-          {pagination.total === 1 ? "product" : "products"}
-        </p>
+        {pagination.total > 0 && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {pagination.total}{" "}
+            {pagination.total === 1 ? "product" : "products"}
+          </p>
+        )}
       </div>
 
       {/* Subcategories — parent prefix stripped, no "All" pill */}
@@ -108,7 +110,22 @@ export function CategoryView({
 
       {/* Products */}
       <div className="mt-6">
-        <ProductGrid products={products} />
+        {products.length === 0 ? (
+          <div className="flex flex-col items-center py-16 text-center">
+            <p className="text-lg font-medium tracking-tight">
+              No products in {category.name} yet
+            </p>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              We&apos;re still stocking this collection. Browse the full shop
+              in the meantime.
+            </p>
+            <Button asChild className="mt-6">
+              <Link href="/shop">Browse all products</Link>
+            </Button>
+          </div>
+        ) : (
+          <ProductGrid products={products} />
+        )}
       </div>
 
       {/* Pagination */}

@@ -1,11 +1,23 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { productRepository, categoryRepository, brandRepository } from "@/lib/repositories"
+import { resolveStoreCategory } from "@/lib/catalog/resolve-store-category"
+import { shopLinks } from "@/lib/navigation"
 import { ProductDetailView } from "./product-detail-view"
 import { CategoryView } from "./category-view"
 import { BrandView } from "./brand-view"
 import { formatPrice } from "@/lib/utils"
 import { siteConfig } from "@/lib/config"
+import type { PaginationMeta } from "@/types"
+
+const EMPTY_CATEGORY_PAGE: PaginationMeta = {
+  total: 0,
+  page: 1,
+  limit: 40,
+  totalPages: 0,
+  hasNext: false,
+  hasPrev: false,
+}
 
 
 interface SlugPageProps {
@@ -30,8 +42,11 @@ export async function generateStaticParams() {
     .map((p) => ({ slug: p.slug }))
   const categorySlugs = categories.map((c) => ({ slug: c.slug }))
   const brandSlugs = brands.map((b) => ({ slug: b.slug }))
+  const navSlugs = shopLinks
+    .filter((item) => item.href !== "/shop")
+    .map((item) => ({ slug: item.href.replace(/^\//, "") }))
 
-  return [...productSlugs, ...categorySlugs, ...brandSlugs]
+  return [...productSlugs, ...categorySlugs, ...brandSlugs, ...navSlugs]
 }
 
 export async function generateMetadata({
@@ -65,15 +80,15 @@ export async function generateMetadata({
     }
   }
 
-  const category = await categoryRepository.getBySlug(slug)
+  const category = await resolveStoreCategory(slug)
   if (category) {
     return {
       title: category.name,
-      description: category.description,
+      description: category.description || `Shop ${category.name} from ${siteConfig.name}.`,
       alternates: { canonical: `/${category.slug}` },
       openGraph: {
         title: category.name,
-        description: category.description,
+        description: category.description || `Shop ${category.name} from ${siteConfig.name}.`,
         type: "website",
         url: `${siteConfig.url}/${category.slug}`,
       },
@@ -136,14 +151,21 @@ export default async function SlugPage({ params }: SlugPageProps) {
     )
   }
 
-  // Check category
-  const category = await categoryRepository.getBySlug(slug)
+  // Check category (including known shop nav slugs with no catalog row yet)
+  const category = await resolveStoreCategory(slug)
   if (category) {
+    const isPlaceholder = category.id.startsWith("nav-")
     const [{ items: products, pagination }, subcategories, ancestors] =
       await Promise.all([
-        productRepository.getByCategory(slug, { page: 1, limit: 40 }),
-        categoryRepository.getChildren(category.id),
-        categoryRepository.getAncestors(category.id),
+        productRepository
+          .getByCategory(category.slug, { page: 1, limit: 40 })
+          .catch(() => ({ items: [], pagination: EMPTY_CATEGORY_PAGE })),
+        isPlaceholder
+          ? Promise.resolve([])
+          : categoryRepository.getChildren(category.id).catch(() => []),
+        isPlaceholder
+          ? Promise.resolve([])
+          : categoryRepository.getAncestors(category.id).catch(() => []),
       ])
     return (
       <CategoryView
