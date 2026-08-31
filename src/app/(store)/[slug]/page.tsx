@@ -8,7 +8,7 @@ import { CategoryView } from "./category-view"
 import { BrandView } from "./brand-view"
 import { formatPrice } from "@/lib/utils"
 import { siteConfig } from "@/lib/config"
-import type { PaginationMeta } from "@/types"
+import type { Category, PaginationMeta, Product } from "@/types"
 
 const EMPTY_CATEGORY_PAGE: PaginationMeta = {
   total: 0,
@@ -19,22 +19,55 @@ const EMPTY_CATEGORY_PAGE: PaginationMeta = {
   hasPrev: false,
 }
 
-// Category and product pages are prerendered. If a catalog save misses
-// a path, this still refreshes images within a minute instead of keeping
-// placeholder cards until the next full deploy.
-export const revalidate = 60
+// Catalog photos change from admin without a deploy. Static `[slug]` HTML
+// kept serving placeholders on product details, related products, and
+// category grids long after `/shop` had the real images.
+export const dynamic = "force-dynamic"
+
+async function getRelatedProducts(
+  product: Product,
+  categories: Category[]
+): Promise<Product[]> {
+  const seen = new Set<string>([product.id])
+  const related: Product[] = []
+
+  for (const category of categories) {
+    const { items } = await productRepository
+      .getByCategory(category.slug, { page: 1, limit: 12 })
+      .catch(() => ({ items: [] as Product[] }))
+    for (const item of items) {
+      if (seen.has(item.id)) continue
+      seen.add(item.id)
+      related.push(item)
+    }
+  }
+
+  if (related.length < 4) {
+    const { items } = await productRepository.list(
+      undefined,
+      { field: "createdAt", order: "desc" },
+      { page: 1, limit: 24 }
+    )
+    for (const item of items) {
+      if (seen.has(item.id)) continue
+      seen.add(item.id)
+      related.push(item)
+    }
+  }
+
+  const withPhotos = related.filter((item) => item.images[0]?.url)
+  const withoutPhotos = related.filter((item) => !item.images[0]?.url)
+  return [...withPhotos, ...withoutPhotos].slice(0, 4)
+}
 
 
 interface SlugPageProps {
   params: Promise<{ slug: string }>
 }
 
-// generateStaticParams pre-renders known slugs at build time. Slugs added or
-// changed later (via the admin panel) are NOT in that list — dynamicParams
-// defaults to true, so Next renders those on-demand at request time instead
-// of 404ing until the next full rebuild+redeploy. This matches how
-// blog/[slug] already behaves; do not set dynamicParams = false here again
-// unless a full rebuild is guaranteed on every catalog change.
+// Known slugs are listed for the build. Pages themselves always render
+// on request (`dynamic = "force-dynamic"`) so admin image uploads show
+// on product details and related products without waiting for a redeploy.
 export async function generateStaticParams() {
   const [{ items: products }, categories, brands] = await Promise.all([
     productRepository.list(undefined, undefined, { page: 1, limit: 1000 }),
@@ -135,11 +168,7 @@ export default async function SlugPage({ params }: SlugPageProps) {
       validCategories.find((c) => c.parentId) ?? validCategories[0] ?? null
 
     const [relatedProducts, brand, categoryAncestors] = await Promise.all([
-      primaryCategory
-        ? productRepository
-            .getByCategory(primaryCategory.slug, { page: 1, limit: 5 })
-            .then((r) => r.items.filter((p) => p.id !== product.id).slice(0, 4))
-        : Promise.resolve([]),
+      getRelatedProducts(product, validCategories),
       brandRepository.getById(product.brandId),
       primaryCategory
         ? categoryRepository.getAncestors(primaryCategory.id)

@@ -73,25 +73,27 @@ export async function getAdminProduct(id: string): Promise<Product | null> {
 }
 
 export async function createProductAction(formData: FormData) {
+  let storePaths: string[] = []
   const result = await runAdminMutation(async () => {
     await requireAdmin()
-    await upsertProduct(formData)
+    storePaths = (await upsertProduct(formData)).paths
   })
   if (result?.error) return result
-  revalidateCatalog()
+  revalidateCatalog(storePaths)
   redirect("/admin/products")
 }
 
 export async function updateProductAction(formData: FormData) {
   let productId = ""
+  let storePaths: string[] = []
   const result = await runAdminMutation(async () => {
     await requireAdmin()
     productId = String(formData.get("id") ?? "")
     if (!productId) throw new Error("Missing product id")
-    await upsertProduct(formData, productId)
+    storePaths = (await upsertProduct(formData, productId)).paths
   })
   if (result?.error) return result
-  revalidateCatalog()
+  revalidateCatalog(storePaths)
   redirect("/admin/products")
 }
 
@@ -266,7 +268,19 @@ async function upsertProduct(formData: FormData, productId?: string) {
   })
 
   if (variantError) throw new Error(variantError.message)
-  return id
+
+  const paths = [`/${slug}`]
+  if (categoryIds.length > 0) {
+    const { data: cats } = await supabase
+      .from("categories")
+      .select("slug")
+      .in("id", categoryIds)
+    for (const cat of cats ?? []) {
+      if (cat.slug) paths.push(`/${cat.slug}`)
+    }
+  }
+
+  return { id, paths }
 }
 
 function requiredText(formData: FormData, key: string) {
@@ -298,6 +312,6 @@ function parseVariantOptions(value: string): ProductOption[] {
   })
 }
 
-function revalidateCatalog() {
-  revalidateStorefront(["/admin", "/admin/products"])
+function revalidateCatalog(extraPaths: string[] = []) {
+  revalidateStorefront(["/admin", "/admin/products", ...extraPaths])
 }
