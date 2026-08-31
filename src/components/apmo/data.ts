@@ -19,14 +19,14 @@ export const navItems = [
 ] as const
 
 export const imageAssets = {
-  hero: "/images/site_images/IMG_1706.jpg",
-  heroAlt: "/images/site_images/FRNK-1955.jpg",
-  founder: "/images/site_images/FRNK-2056.jpg",
-  salon: "/images/site_images/FRNK-2012.jpg",
-  product: "/images/site_images/FRNK-2049.jpg",
-  ritual: "/images/site_images/FRNK-1986.jpg",
-  team: "/images/site_images/FRNK-1419.jpg",
-  texture: "/images/site_images/FRNK-2035.jpg",
+  hero: "/images/new_images/_DSF2443.jpg",
+  heroAlt: "/images/new_images/_DSF2605.jpg",
+  founder: "/images/new_images/_DSF2554.jpg",
+  salon: "/images/new_images/_DSF2577.jpg",
+  product: "/images/new_images/_DSF2522.jpg",
+  ritual: "/images/new_images/_DSF2608.jpg",
+  team: "/images/new_images/_DSF2569.jpg",
+  texture: "/images/new_images/_DSF2564.jpg",
 } as const
 
 // Real brand pillars (not fabricated metrics) — these describe what
@@ -78,41 +78,41 @@ export const services = [
 
 export const products = [
   {
-    name: "Petangler Mist",
+    name: "Hair Spritz",
     category: "Detangle",
-    image: "/images/site_images/FRNK-2056.jpg",
-    description: "A slip-rich mist for quick comb-throughs and soft curl definition.",
+    image: "/images/new_images/_DSF2608.jpg",
+    description: "An oil-infused mist that moisturizes wavy, curly, coily, and locked hair.",
   },
   {
-    name: "Growth Milk",
+    name: "Hair Butter",
     category: "Nourish",
-    image: "/images/site_images/FRNK-2049.jpg",
-    description: "A creamy botanical blend that leaves strands hydrated and glossy.",
+    image: "/images/new_images/_DSF2605.jpg",
+    description: "A rich botanical butter for softer, glossier, longer-looking strands.",
   },
   {
-    name: "Scalp Revival Oil",
+    name: "Pure Growth Oil",
     category: "Restore",
-    image: "/images/site_images/IMG_1706.jpg",
-    description: "A lightweight oil for massage rituals, shine, and scalp comfort.",
+    image: "/images/new_images/_DSF2586.jpg",
+    description: "A kids’ hair nourishing oil with sweet almond, coconut, and simsim oils.",
   },
 ] as const
 
 export const portfolio = [
   {
     title: "At-home hair rituals",
-    image: "/images/site_images/FRNK-1955.jpg",
+    image: "/images/new_images/_DSF2577.jpg",
   },
   {
     title: "Product-led confidence",
-    image: "/images/site_images/FRNK-328 (1).jpg",
+    image: "/images/new_images/_DSF2547.jpg",
   },
   {
     title: "Community beauty moments",
-    image: "/images/site_images/FRNK-2012.jpg",
+    image: "/images/new_images/_DSF2413.jpg",
   },
   {
     title: "Salon-ready education",
-    image: "/images/site_images/IMG_1660.jpg",
+    image: "/images/new_images/_DSF2569.jpg",
   },
 ] as const
 

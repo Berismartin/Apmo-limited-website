@@ -175,7 +175,7 @@ export function Hero() {
           >
             <Image
               src={imageAssets.hero}
-              alt="Apmo product ritual with natural haircare products"
+              alt="Apmo Body Glow Oil with botanicals"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 48vw"
@@ -193,7 +193,7 @@ export function Hero() {
             <div className="relative h-44 overflow-hidden rounded-[1.4rem]">
               <Image
                 src={imageAssets.heroAlt}
-                alt="Apmo haircare service moment"
+                alt="Apmo Hair Butter"
                 fill
                 sizes="176px"
                 className="object-cover"

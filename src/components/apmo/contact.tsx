@@ -42,7 +42,7 @@ export function Contact() {
 
         <ImageReveal
           src={imageAssets.product}
-          alt="Apmo product portrait"
+          alt="Apmo Moisturizing Body Lotion"
           fill
           sizes="(max-width: 1024px) 100vw, 42vw"
           className="min-h-[34rem]"
