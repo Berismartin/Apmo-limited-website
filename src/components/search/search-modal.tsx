@@ -1,25 +1,21 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import { AppImage } from "@/components/ui/app-image"
-import { Search, X, ArrowRight } from "lucide-react"
+import { Search, X, ArrowRight, Loader2 } from "lucide-react"
 import { StarRating } from "@/components/products/star-rating"
 import { formatPrice } from "@/lib/utils"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import type { Product } from "@/types"
-import data from "@/data/products.json"
+import { getSearchableProductsAction } from "@/lib/actions/search"
+import { shopLinks } from "@/lib/navigation"
 
-const allProducts = data.products as Product[]
-
-const popularSearches = [
-  "Headphones",
-  "Coffee",
-  "Leather",
-  "Wireless",
-  "Organic",
-  "Candle",
-]
+// Real category pages, not free-text queries: a chip like "Scalp Care"
+// rarely appears verbatim in a product's name/description/tags, so treating
+// it as a search term returned zero results for most categories. Linking
+// straight to the category page always shows every matching product.
+const popularCategories = shopLinks.filter((link) => link.href !== "/shop")
 
 interface SearchModalProps {
   isOpen: boolean
@@ -28,18 +24,46 @@ interface SearchModalProps {
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState("")
+  const [products, setProducts] = useState<Product[] | null>(null)
+  const [loadError, setLoadError] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
+  const fetchStartedRef = useRef(false)
 
-  const results = query.trim().length > 0
-    ? allProducts.filter(
-        (p) =>
-          p.status === "active" &&
-          (p.name.toLowerCase().includes(query.toLowerCase()) ||
-            p.description.toLowerCase().includes(query.toLowerCase()) ||
-            p.tags.some((t) => t.toLowerCase().includes(query.toLowerCase())))
-      ).slice(0, 6)
-    : []
+  const fetchProducts = useCallback(() => {
+    getSearchableProductsAction()
+      .then((items) => setProducts(items))
+      .catch(() => setLoadError(true))
+  }, [])
+
+  const handleRetry = useCallback(() => {
+    setLoadError(false)
+    fetchProducts()
+  }, [fetchProducts])
+
+  // Fetch the catalog once, the first time the modal is opened — not on
+  // every keystroke — then filter in memory for an instant-feeling search.
+  // The effect only flips a ref and hands off to an async call; the actual
+  // setState calls happen inside its .then/.catch, not synchronously here.
+  useEffect(() => {
+    if (!isOpen || fetchStartedRef.current) return
+    fetchStartedRef.current = true
+    fetchProducts()
+  }, [isOpen, fetchProducts])
+
+  const isLoading = isOpen && products === null && !loadError
+
+  const results =
+    query.trim().length > 0 && products
+      ? products
+          .filter(
+            (p) =>
+              p.name.toLowerCase().includes(query.toLowerCase()) ||
+              p.description.toLowerCase().includes(query.toLowerCase()) ||
+              p.tags.some((t) => t.toLowerCase().includes(query.toLowerCase()))
+          )
+          .slice(0, 6)
+      : []
 
   const handleClose = useCallback(() => {
     setQuery("")
@@ -127,7 +151,28 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
           {/* Results */}
           <div className="max-h-[60vh] overflow-y-auto">
-            {hasQuery && results.length > 0 && (
+            {hasQuery && isLoading && (
+              <div className="flex items-center justify-center gap-2 px-4 py-12 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Searching…
+              </div>
+            )}
+
+            {hasQuery && !isLoading && loadError && (
+              <div className="px-4 py-12 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Couldn&apos;t load products right now.
+                </p>
+                <button
+                  onClick={handleRetry}
+                  className="mt-2 text-sm font-medium text-foreground underline underline-offset-2"
+                >
+                  Try again
+                </button>
+              </div>
+            )}
+
+            {hasQuery && !isLoading && !loadError && results.length > 0 && (
               <div className="p-2">
                 {results.map((product) => {
                   const variant = product.variants[0]
@@ -174,7 +219,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               </div>
             )}
 
-            {hasQuery && results.length === 0 && (
+            {hasQuery && !isLoading && !loadError && results.length === 0 && (
               <div className="px-4 py-12 text-center">
                 <p className="text-sm text-muted-foreground">
                   No results for &quot;{query}&quot;
@@ -188,14 +233,15 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   Popular Searches
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {popularSearches.map((term) => (
-                    <button
-                      key={term}
-                      onClick={() => setQuery(term)}
+                  {popularCategories.map((category) => (
+                    <Link
+                      key={category.href}
+                      href={category.href}
+                      onClick={handleClose}
                       className="rounded-full border border-border px-3 py-1.5 text-sm transition-colors hover:border-foreground hover:bg-neutral-50"
                     >
-                      {term}
-                    </button>
+                      {category.name}
+                    </Link>
                   ))}
                 </div>
               </div>

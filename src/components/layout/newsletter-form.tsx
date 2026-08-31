@@ -3,21 +3,35 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { newsletterSchema } from "@/lib/validators"
+import { subscribeToNewsletterAction } from "@/lib/actions/contact"
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email) return
+    const result = newsletterSchema.safeParse({ email })
+    if (!result.success) {
+      toast.error(result.error.issues[0].message)
+      return
+    }
 
     setLoading(true)
-    setTimeout(() => {
+    try {
+      const mutation = await subscribeToNewsletterAction(result.data)
+      if (mutation?.error) {
+        toast.error(mutation.error)
+        return
+      }
       toast.success("Thanks for subscribing!")
       setEmail("")
+    } catch {
+      toast.error("Couldn't subscribe right now. Please try again later.")
+    } finally {
       setLoading(false)
-    }, 500)
+    }
   }
 
   return (
@@ -29,7 +43,8 @@ export function NewsletterForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
-        className="flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+        disabled={loading}
+        className="flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-70"
       />
       <Button variant="secondary" type="submit" disabled={loading}>
         {loading ? "..." : "Subscribe"}

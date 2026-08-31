@@ -168,6 +168,12 @@ export function Header({ categories = [] }: HeaderProps) {
               {item.name}
             </Link>
           ))}
+          <Link
+            href="/blog"
+            className="text-sm font-medium text-foreground transition-colors hover:text-foreground/70"
+          >
+            Blog
+          </Link>
         </nav>
 
         {/* Actions */}

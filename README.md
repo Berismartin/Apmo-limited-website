@@ -66,9 +66,10 @@ src/
       shop/           # Product catalog with filters
       cart/           # Shopping cart
       checkout/       # Checkout + success
-      account/         # Dashboard, orders, addresses, settings
       auth/            # Login, register, forgot password
       brands/          # All brands page
+      blog/            # Blog index + posts
+      testimonials/    # Customer testimonials
     (admin)/admin/    # Admin dashboard
   components/
     ui/               # shadcn/ui + custom components
@@ -138,12 +139,16 @@ Ships with a demo provider. To connect Stripe or any other payment system, imple
 | `/search` | Search (also available via Cmd+K modal) |
 | `/wishlist` | Saved products |
 | `/brands` | All brands |
-| `/account` | Account dashboard |
+| `/blog`, `/blog/[slug]` | Blog index and posts |
+| `/testimonials` | Customer testimonials |
 | `/auth/login` | Sign in |
 | `/about` | About the starter + Epic Design Labs |
 | `/contact` | Contact form |
 | `/faq` | FAQ accordion |
 | `/policies/*` | Shipping, returns, privacy, terms |
+
+
+There is no `/account` section or `/pages/[slug]` CMS route in this build — both were removed from the storefront.
 
 ## Need Help?
 

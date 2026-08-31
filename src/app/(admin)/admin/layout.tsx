@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, Menu, X, Store, Newspaper, MessageSquareQuote, Tag, FolderTree } from "lucide-react"
+import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, Menu, X, Store, Newspaper, MessageSquareQuote, Tag, FolderTree, Mail } from "lucide-react"
 import { useAuthGuard } from "@/hooks/use-auth-guard"
 import { useAuthStore } from "@/store/auth"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
@@ -19,6 +19,7 @@ const adminNav = [
   { name: "Orders", href: "/admin/orders", icon: Package },
   { name: "Blog", href: "/admin/blog", icon: Newspaper },
   { name: "Testimonials", href: "/admin/testimonials", icon: MessageSquareQuote },
+  { name: "Contact", href: "/admin/contact", icon: Mail },
   { name: "Customers", href: "/admin/customers", icon: Users },
 ]
 

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Clock, Globe, Mail, MapPin, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
 import { contactFormSchema } from "@/lib/validators"
+import { submitContactMessageAction } from "@/lib/actions/contact"
 
 export default function ContactPage() {
   const [loading, setLoading] = useState(false)
@@ -25,7 +26,7 @@ export default function ContactPage() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
     const result = contactFormSchema.safeParse(form)
@@ -35,12 +36,19 @@ export default function ContactPage() {
     }
 
     setLoading(true)
-    // In production, send to hello@apmoug.com via an API route or form service.
-    setTimeout(() => {
+    try {
+      const mutation = await submitContactMessageAction(result.data)
+      if (mutation?.error) {
+        toast.error(mutation.error)
+        return
+      }
       toast.success("Message sent! We'll get back to you soon.")
       setForm({ name: "", email: "", subject: "", message: "" })
+    } catch {
+      toast.error("Couldn't send your message. Please try again or email us directly.")
+    } finally {
       setLoading(false)
-    }, 500)
+    }
   }
 
   return (

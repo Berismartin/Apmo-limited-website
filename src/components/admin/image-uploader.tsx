@@ -79,45 +79,56 @@ export function ImageUploader({
     [syncInputFiles]
   )
 
-  const processBackgroundRemoval = useCallback(async (itemId: string, file: File) => {
-    try {
-      const { removeBackground: removeBg } = await import("@imgly/background-removal")
-      const blob = await removeBg(file, {
-        output: { format: "image/png", quality: 0.9 },
-        model: "isnet_fp16",
-      })
+  // Background removal loads and runs a full ML model client-side (WASM).
+  // Firing several of these at once is what makes a multi-image upload feel
+  // like it has hung — chain jobs onto a queue so only one runs at a time.
+  const bgRemovalQueueRef = useRef<Promise<void>>(Promise.resolve())
 
-      const processedName = file.name.replace(/\.[^/.]+$/, "") + "-nobg.png"
-      const processedFile = new File([blob], processedName, {
-        type: "image/png",
-        lastModified: Date.now(),
-      })
-      const processedUrl = URL.createObjectURL(processedFile)
-
-      updatePending((prev) =>
-        prev.map((item) => {
-          if (item.id !== itemId) return item
-          if (item.processedUrl) URL.revokeObjectURL(item.processedUrl)
-          return {
-            ...item,
-            processedFile,
-            processedUrl,
-            status: "review",
-            error: undefined,
-          }
+  const processBackgroundRemoval = useCallback((itemId: string, file: File) => {
+    const job = async () => {
+      try {
+        const { removeBackground: removeBg } = await import("@imgly/background-removal")
+        const blob = await removeBg(file, {
+          output: { format: "image/png", quality: 0.9 },
+          model: "isnet_fp16",
         })
-      )
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Background removal failed"
-      updatePending((prev) =>
-        prev.map((item) =>
-          item.id === itemId
-            ? { ...item, status: "error", error: message }
-            : item
+
+        const processedName = file.name.replace(/\.[^/.]+$/, "") + "-nobg.png"
+        const processedFile = new File([blob], processedName, {
+          type: "image/png",
+          lastModified: Date.now(),
+        })
+        const processedUrl = URL.createObjectURL(processedFile)
+
+        updatePending((prev) =>
+          prev.map((item) => {
+            if (item.id !== itemId) return item
+            if (item.processedUrl) URL.revokeObjectURL(item.processedUrl)
+            return {
+              ...item,
+              processedFile,
+              processedUrl,
+              status: "review",
+              error: undefined,
+            }
+          })
         )
-      )
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Background removal failed"
+        updatePending((prev) =>
+          prev.map((item) =>
+            item.id === itemId
+              ? { ...item, status: "error", error: message }
+              : item
+          )
+        )
+      }
     }
+
+    // Chain onto the queue regardless of whether the previous job succeeded
+    // or failed, so one failure doesn't stall every image behind it.
+    bgRemovalQueueRef.current = bgRemovalQueueRef.current.then(job, job)
   }, [updatePending])
 
   const handleFiles = useCallback(

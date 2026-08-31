@@ -1,12 +1,29 @@
+"use client"
+
 import Link from "next/link"
+import { useLinkStatus } from "next/link"
 import { cn } from "@/lib/utils"
 import type { PaginationMeta } from "@/types"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 
 interface PaginationProps {
   pagination: PaginationMeta
   basePath: string
   searchParams?: Record<string, string>
+}
+
+/**
+ * Renders as a child of <Link>. next/link's useLinkStatus() reports whether
+ * that specific link's navigation is in flight, so the page you clicked can
+ * show a spinner instead of the whole grid silently swapping out underneath
+ * you (or nothing happening at all on a slow connection).
+ */
+function LinkContent({ children }: { children: React.ReactNode }) {
+  const { pending } = useLinkStatus()
+  if (pending) {
+    return <Loader2 className="h-4 w-4 animate-spin" />
+  }
+  return <>{children}</>
 }
 
 export function Pagination({
@@ -46,7 +63,9 @@ export function Pagination({
           className="inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent"
           aria-label="Previous page"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <LinkContent>
+            <ChevronLeft className="h-4 w-4" />
+          </LinkContent>
         </Link>
       ) : (
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground/60">
@@ -66,7 +85,7 @@ export function Pagination({
           )}
           aria-current={p === page ? "page" : undefined}
         >
-          {p}
+          <LinkContent>{p}</LinkContent>
         </Link>
       ))}
 
@@ -76,7 +95,9 @@ export function Pagination({
           className="inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent"
           aria-label="Next page"
         >
-          <ChevronRight className="h-4 w-4" />
+          <LinkContent>
+            <ChevronRight className="h-4 w-4" />
+          </LinkContent>
         </Link>
       ) : (
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground/60">

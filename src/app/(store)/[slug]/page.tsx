@@ -12,11 +12,12 @@ interface SlugPageProps {
   params: Promise<{ slug: string }>
 }
 
-// Only render slugs returned by generateStaticParams — any other slug
-// automatically gets a proper 404 response. Rebuild/redeploy to pick
-// up new products, categories, or brands.
-export const dynamicParams = false
-
+// generateStaticParams pre-renders known slugs at build time. Slugs added or
+// changed later (via the admin panel) are NOT in that list — dynamicParams
+// defaults to true, so Next renders those on-demand at request time instead
+// of 404ing until the next full rebuild+redeploy. This matches how
+// blog/[slug] already behaves; do not set dynamicParams = false here again
+// unless a full rebuild is guaranteed on every catalog change.
 export async function generateStaticParams() {
   const [{ items: products }, categories, brands] = await Promise.all([
     productRepository.list(undefined, undefined, { page: 1, limit: 1000 }),
