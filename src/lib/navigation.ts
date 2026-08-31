@@ -38,10 +38,10 @@ function categoryTokens(category: { name: string; slug: string }) {
   ]
 }
 
-export function findCategoryForNav(
+export function findCategoryForNav<T extends { name: string; slug: string }>(
   navName: string,
-  categories: { name: string; slug: string }[]
-) {
+  categories: T[]
+): T | undefined {
   const aliases = NAV_ALIASES[compactSlug(navName)] ?? [compactSlug(navName)]
   return categories.find((category) => {
     const tokens = categoryTokens(category)
