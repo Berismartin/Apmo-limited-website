@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition, useState } from "react"
+import { useRef, useTransition, useState } from "react"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ImageUploader } from "@/components/admin/image-uploader"
+import {
+  ImageUploader,
+  attachReadyImageFiles,
+} from "@/components/admin/image-uploader"
 import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
 import { slugify } from "@/lib/utils"
 import type { MutationResult } from "@/lib/admin/mutation-result"
@@ -29,10 +32,12 @@ export function CategoryForm({
 }: CategoryFormProps) {
   const [isPending, startTransition] = useTransition()
   const [slug, setSlug] = useState(category?.slug ?? "")
+  const imageFilesRef = useRef<File[]>([])
 
   const parentOptions = categories.filter((c) => c.id !== category?.id)
 
   const handleSubmit = (formData: FormData) => {
+    attachReadyImageFiles(formData, imageFilesRef.current)
     startTransition(async () => {
       await submitAdminMutation(() => action(formData), {
         success: "Category saved successfully",
@@ -121,7 +126,12 @@ export function CategoryForm({
           <CardTitle>Category image (optional)</CardTitle>
         </CardHeader>
         <CardContent>
-          <ImageUploader existing={category?.image ? [category.image] : []} />
+          <ImageUploader
+            existing={category?.image ? [category.image] : []}
+            onReadyFilesChange={(files) => {
+              imageFilesRef.current = files
+            }}
+          />
         </CardContent>
       </Card>
 

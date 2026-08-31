@@ -16,6 +16,26 @@ interface ImageUploaderProps {
   onDeleteImage?: (imageUrl: string) => Promise<void>
   /** Product forms can opt into background removal with approve/reject. */
   enableBackgroundRemoval?: boolean
+  /** Called whenever the files that should be submitted change. */
+  onReadyFilesChange?: (files: File[]) => void
+}
+
+export function attachReadyImageFiles(formData: FormData, files: File[]) {
+  formData.delete("image_file")
+  for (const file of files) {
+    formData.append("image_file", file)
+  }
+}
+
+function readyFilesFromPending(items: PendingImage[]): File[] {
+  return items.flatMap((item) => {
+    if (item.status !== "ready") return []
+    const file =
+      item.removeBackground && item.processedFile
+        ? item.processedFile
+        : item.originalFile
+    return [file]
+  })
 }
 
 type PendingImage = {
@@ -33,6 +53,7 @@ export function ImageUploader({
   existing = [],
   onDeleteImage,
   enableBackgroundRemoval = false,
+  onReadyFilesChange,
 }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -41,6 +62,8 @@ export function ImageUploader({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null)
   const dataTransferRef = useRef<DataTransfer | null>(null)
+  const onReadyFilesChangeRef = useRef(onReadyFilesChange)
+  onReadyFilesChangeRef.current = onReadyFilesChange
 
   useEffect(() => {
     dataTransferRef.current = new DataTransfer()
@@ -53,13 +76,11 @@ export function ImageUploader({
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const syncInputFiles = useCallback((items: PendingImage[]) => {
+    const files = readyFilesFromPending(items)
+    onReadyFilesChangeRef.current?.(files)
+
     const dt = new DataTransfer()
-    for (const item of items) {
-      if (item.status !== "ready") continue
-      const file =
-        item.removeBackground && item.processedFile
-          ? item.processedFile
-          : item.originalFile
+    for (const file of files) {
       dt.items.add(file)
     }
     dataTransferRef.current = dt

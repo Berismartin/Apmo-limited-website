@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition } from "react"
+import { useRef, useTransition } from "react"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ImageUploader } from "@/components/admin/image-uploader"
+import {
+  ImageUploader,
+  attachReadyImageFiles,
+} from "@/components/admin/image-uploader"
 import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
 import type { BlogPost } from "@/types"
 
@@ -28,8 +31,10 @@ function toDatetimeLocal(iso?: string) {
 
 export function BlogForm({ action, post, submitLabel }: BlogFormProps) {
   const [isPending, startTransition] = useTransition()
+  const imageFilesRef = useRef<File[]>([])
 
   const handleSubmit = (formData: FormData) => {
+    attachReadyImageFiles(formData, imageFilesRef.current)
     startTransition(async () => {
       await submitAdminMutation(() => action(formData), {
         success: "Blog post saved successfully",
@@ -114,7 +119,12 @@ export function BlogForm({ action, post, submitLabel }: BlogFormProps) {
           <CardTitle>Cover image</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <ImageUploader existing={post?.coverImage ? [post.coverImage] : []} />
+          <ImageUploader
+            existing={post?.coverImage ? [post.coverImage] : []}
+            onReadyFilesChange={(files) => {
+              imageFilesRef.current = files
+            }}
+          />
           <div className="grid gap-5 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="cover_image_url">Or cover image URL</Label>

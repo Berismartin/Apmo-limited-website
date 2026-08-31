@@ -60,12 +60,63 @@ function loadSharp(): Promise<typeof sharpType | null> {
   return sharpModulePromise
 }
 
-function extensionFromFile(file: File): string {
-  const fromName = file.name.split(".").pop()
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+  "image/gif",
+])
+
+const MIME_FROM_EXTENSION: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  gif: "image/gif",
+}
+
+interface UploadedImage {
+  name?: string
+  type?: string
+  size: number
+  arrayBuffer: () => Promise<ArrayBuffer>
+}
+
+function asUploadedImage(value: FormDataEntryValue): UploadedImage | null {
+  if (typeof value === "string" || value == null) return null
+  const candidate = value as Partial<UploadedImage>
+  if (
+    typeof candidate.arrayBuffer === "function" &&
+    typeof candidate.size === "number" &&
+    candidate.size > 0
+  ) {
+    return candidate as UploadedImage
+  }
+  return null
+}
+
+function mimeForUpload(file: UploadedImage): string {
+  const type = (file.type || "").toLowerCase()
+  if (ALLOWED_IMAGE_TYPES.has(type)) {
+    return type === "image/jpg" ? "image/jpeg" : type
+  }
+  const ext = extensionFromFile(file)
+  return MIME_FROM_EXTENSION[ext] ?? ""
+}
+
+function toArrayBuffer(buffer: Buffer): ArrayBuffer {
+  const copy = new Uint8Array(buffer.byteLength)
+  copy.set(buffer)
+  return copy.buffer
+}
+
+function extensionFromFile(file: { name?: string; type?: string }): string {
+  const fromName = file.name?.split(".").pop()
   if (fromName && fromName.length <= 5 && /^[a-z0-9]+$/i.test(fromName)) {
     return fromName.toLowerCase()
   }
-  const fromType = file.type.split("/")[1]
+  const fromType = file.type?.split("/")[1]
   return fromType ? fromType.toLowerCase() : "bin"
 }
 
@@ -83,17 +134,18 @@ function extensionFromFile(file: File): string {
  * way out is a good way to have uploads start silently failing against an
  * allowlist that was never updated to expect it.
  */
-async function prepareImage(file: File): Promise<PreparedImage> {
+async function prepareImage(file: UploadedImage): Promise<PreparedImage> {
   const input = Buffer.from(await file.arrayBuffer())
   const originalExtension = extensionFromFile(file)
+  const sourceType = mimeForUpload(file) || file.type
 
-  if (file.type === "image/gif") {
-    return { buffer: input, contentType: file.type, extension: "gif" }
+  if (sourceType === "image/gif") {
+    return { buffer: input, contentType: "image/gif", extension: "gif" }
   }
 
   const sharp = await loadSharp()
   if (!sharp) {
-    return { buffer: input, contentType: file.type, extension: originalExtension }
+    return { buffer: input, contentType: sourceType || "application/octet-stream", extension: originalExtension }
   }
 
   try {
@@ -107,18 +159,18 @@ async function prepareImage(file: File): Promise<PreparedImage> {
         withoutEnlargement: true,
       })
 
-    let contentType = file.type
+    let contentType = sourceType || file.type || "application/octet-stream"
     let extension = originalExtension
 
-    if (file.type === "image/jpeg" || file.type === "image/jpg") {
+    if (sourceType === "image/jpeg" || sourceType === "image/jpg") {
       pipeline = pipeline.jpeg({ quality: IMAGE_QUALITY })
       contentType = "image/jpeg"
       extension = "jpg"
-    } else if (file.type === "image/png") {
+    } else if (sourceType === "image/png") {
       pipeline = pipeline.png({ compressionLevel: 9 })
       contentType = "image/png"
       extension = "png"
-    } else if (file.type === "image/webp") {
+    } else if (sourceType === "image/webp") {
       pipeline = pipeline.webp({ quality: IMAGE_QUALITY })
       contentType = "image/webp"
       extension = "webp"
@@ -134,7 +186,7 @@ async function prepareImage(file: File): Promise<PreparedImage> {
       `[product-image-storage] sharp failed to process "${file.name}" — uploading it unresized.`,
       error
     )
-    return { buffer: input, contentType: file.type, extension: originalExtension }
+    return { buffer: input, contentType: sourceType || "application/octet-stream", extension: originalExtension }
   }
 }
 
@@ -144,19 +196,25 @@ export async function uploadProductImagesFromFormData(
 ): Promise<ProcessedProductImage[]> {
   const files = formData
     .getAll("image_file")
-    .filter((file): file is File => file instanceof File && file.size > 0)
+    .flatMap((value) => {
+      const file = asUploadedImage(value)
+      return file ? [file] : []
+    })
 
   if (files.length === 0) return []
 
   // Validate every file before uploading any of them, so a single bad file
   // in a multi-image batch can't leave earlier files uploaded and orphaned.
   for (const file of files) {
-    if (!file.type.startsWith("image/")) {
-      throw new Error(`"${file.name}" must be an image`)
+    const mime = mimeForUpload(file)
+    if (!mime) {
+      throw new Error(
+        `"${file.name || "image"}" must be a PNG, JPEG, WebP, or GIF`
+      )
     }
     if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
       throw new Error(
-        `"${file.name}" is too large. Maximum image size is 2 MB.`
+        `"${file.name || "image"}" is too large. Maximum image size is 2 MB.`
       )
     }
   }
@@ -171,12 +229,17 @@ export async function uploadProductImagesFromFormData(
       const index = cursor++
       const file = files[index]
       const prepared = await prepareImage(file)
-      const baseName = sanitizeFilename(file.name).replace(/\.[^/.]+$/, "")
+      const baseName = sanitizeFilename(file.name || "image").replace(/\.[^/.]+$/, "")
       const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${baseName}.${prepared.extension}`
 
+      // Blob (not Node Buffer): Vercel's fetch serializes Buffer as JSON,
+      // which makes the storage upload succeed locally and fail in production.
+      const blob = new Blob([toArrayBuffer(prepared.buffer)], {
+        type: prepared.contentType,
+      })
       const { error } = await supabase.storage
         .from(productImageBucket)
-        .upload(path, prepared.buffer, {
+        .upload(path, blob, {
           contentType: prepared.contentType,
           upsert: true,
           cacheControl: "31536000",

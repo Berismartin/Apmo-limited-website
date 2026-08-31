@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition } from "react"
+import { useRef, useTransition } from "react"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ImageUploader } from "@/components/admin/image-uploader"
+import {
+  ImageUploader,
+  attachReadyImageFiles,
+} from "@/components/admin/image-uploader"
 import { submitAdminMutation } from "@/components/admin/submit-admin-mutation"
 import { siteConfig } from "@/lib/config"
 import { normalizeCurrencyCode } from "@/lib/utils"
@@ -39,6 +42,7 @@ export function ProductForm({
   const variant = product?.variants[0]
   const selectedCategories = new Set(product?.categoryIds ?? [])
   const [isPending, startTransition] = useTransition()
+  const imageFilesRef = useRef<File[]>([])
 
   const handleDeleteImage = deleteImageAction && product
     ? (url: string) =>
@@ -59,6 +63,7 @@ export function ProductForm({
     : undefined
 
   const handleSubmit = (formData: FormData) => {
+    attachReadyImageFiles(formData, imageFilesRef.current)
     startTransition(async () => {
       await submitAdminMutation(() => action(formData), {
         success: "Product saved successfully",
@@ -193,6 +198,9 @@ export function ProductForm({
             productId={product?.id}
             onDeleteImage={handleDeleteImage}
             enableBackgroundRemoval
+            onReadyFilesChange={(files) => {
+              imageFilesRef.current = files
+            }}
           />
         </CardContent>
       </Card>
