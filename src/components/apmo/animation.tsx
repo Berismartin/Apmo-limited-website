@@ -322,8 +322,9 @@ export function ImageReveal({
         <Image
           {...props}
           alt={alt}
+          loading={props.priority ? undefined : (props.loading ?? "lazy")}
           unoptimized={props.unoptimized ?? shouldUnoptimizeImage(props.src)}
-          className={cn("object-cover transition-transform duration-700", imageClassName)}
+          className={cn("h-full w-full object-cover transition-transform duration-700", imageClassName)}
         />
       </motion.div>
       <div className="absolute inset-0 bg-gradient-to-t from-[#351426]/35 via-transparent to-transparent" />

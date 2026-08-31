@@ -9,25 +9,94 @@ import {
   FiSun,
   FiZap,
 } from "react-icons/fi"
+import { compactSlug } from "@/lib/utils"
 
 export const navItems = [
   { label: "Shop", href: "/shop" },
-  { label: "Haircare", href: "/haircare" },
-  { label: "Rituals", href: "/rituals" },
+  { label: "Hair", href: "/hair" },
+  { label: "Skin", href: "/skin" },
+  { label: "Body", href: "/body" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ] as const
 
-export const imageAssets = {
-  hero: "/images/new_images/_DSF2443.jpg",
-  heroAlt: "/images/new_images/_DSF2605.jpg",
-  founder: "/images/new_images/_DSF2554.jpg",
-  salon: "/images/new_images/_DSF2577.jpg",
-  product: "/images/new_images/_DSF2522.jpg",
-  ritual: "/images/new_images/_DSF2608.jpg",
-  team: "/images/new_images/_DSF2569.jpg",
-  texture: "/images/new_images/_DSF2564.jpg",
+const MODEL = "/images/new_images/models"
+
+export const modelImages = {
+  hairBed: `${MODEL}/IMG_4622.jpg`,
+  hairSmile: `${MODEL}/IMG_4623.jpg`,
+  hairPortrait: `${MODEL}/IMG_4626.jpg`,
+  hairLeaveIn: `${MODEL}/IMG_4873.jpg`,
+  hairWash: `${MODEL}/IMG_4884.jpg`,
+  hairProducts: `${MODEL}/_DSF2021.jpg`,
+  skinJars: `${MODEL}/IMG_4605.jpg`,
+  skinJarsAlt: `${MODEL}/IMG_4604.jpg`,
+  bodyLooking: `${MODEL}/IMG_4600.jpg`,
+  bodyLotion: `${MODEL}/IMG_4593.jpg`,
+  bodyPair: `${MODEL}/IMG_4619.jpg`,
+  bodyCream: `${MODEL}/IMG_4597.jpg`,
+  bodyLotionSmile: `${MODEL}/IMG_4601.jpg`,
+  coffeeScrub: `${MODEL}/IMG_4613.jpg`,
+  jarsFocus: `${MODEL}/_DSF2086.jpg`,
 } as const
+
+export const imageAssets = {
+  hero: modelImages.hairLeaveIn,
+  heroAlt: modelImages.hairPortrait,
+  founder: modelImages.bodyPair,
+  salon: modelImages.hairWash,
+  product: modelImages.bodyPair,
+  ritual: modelImages.hairSmile,
+  team: modelImages.skinJars,
+  texture: modelImages.hairBed,
+} as const
+
+export const collections = [
+  {
+    name: "Hair",
+    href: "/hair",
+    image: modelImages.hairSmile,
+    copy: "Moisture, detangle, and definition for textured hair.",
+  },
+  {
+    name: "Skin",
+    href: "/skin",
+    image: modelImages.skinJars,
+    copy: "Jellies, washes, and daily glow for face and body.",
+  },
+  {
+    name: "Body",
+    href: "/body",
+    image: modelImages.bodyPair,
+    copy: "Lotions, butters, and scrubs that soften and restore.",
+  },
+  {
+    name: "Kids",
+    href: "/kids",
+    image: modelImages.hairLeaveIn,
+    copy: "Gentle care for little coils, curls, and wash days.",
+  },
+  {
+    name: "Detergents",
+    href: "/detergents",
+    image: modelImages.bodyLotionSmile,
+    copy: "Clean formulas for the rest of the home ritual.",
+  },
+] as const
+
+export function modelImageForCategory(slug: string, name: string) {
+  const token = `${compactSlug(slug)}${compactSlug(name)}`
+  if (token.includes("hair")) return modelImages.hairSmile
+  if (token.includes("skin")) return modelImages.skinJars
+  if (token.includes("body")) return modelImages.bodyPair
+  if (token.includes("kid") || token.includes("baby") || token.includes("child")) {
+    return modelImages.hairLeaveIn
+  }
+  if (token.includes("detergent") || token.includes("laundry")) {
+    return modelImages.bodyLotionSmile
+  }
+  return modelImages.hairSmile
+}
 
 // Real brand pillars (not fabricated metrics) — these describe what
 // Apmo actually is, mirroring the About page's messaging.
@@ -99,20 +168,20 @@ export const products = [
 
 export const portfolio = [
   {
-    title: "At-home hair rituals",
-    image: "/images/new_images/_DSF2577.jpg",
+    title: "Wash-day softness",
+    image: modelImages.hairWash,
   },
   {
-    title: "Product-led confidence",
-    image: "/images/new_images/_DSF2547.jpg",
+    title: "Skin that glows back",
+    image: modelImages.skinJarsAlt,
   },
   {
-    title: "Community beauty moments",
-    image: "/images/new_images/_DSF2413.jpg",
+    title: "Body care, held close",
+    image: modelImages.bodyLotion,
   },
   {
-    title: "Salon-ready education",
-    image: "/images/new_images/_DSF2569.jpg",
+    title: "Hair, in real life",
+    image: modelImages.hairSmile,
   },
 ] as const
 

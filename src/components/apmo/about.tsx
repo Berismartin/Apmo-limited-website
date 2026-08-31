@@ -25,7 +25,7 @@ export function About() {
         <div className="grid gap-5 sm:grid-cols-[0.8fr_1.2fr] sm:items-end">
           <ImageReveal
             src={imageAssets.founder}
-            alt="Apmo Body & Hand Cream with aloe"
+            alt="Apmo model holding moisturizing lotion and body cream"
             fill
             sizes="(max-width: 768px) 100vw, 32vw"
             className="h-[28rem]"
@@ -33,7 +33,7 @@ export function About() {
           />
           <ImageReveal
             src={imageAssets.salon}
-            alt="Apmo Detangler on a studio set"
+            alt="Wash-day ritual with Apmo moisturizing shampoo"
             fill
             sizes="(max-width: 768px) 100vw, 42vw"
             className="h-[36rem]"

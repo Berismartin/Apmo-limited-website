@@ -1,4 +1,4 @@
-import { compactSlug } from "@/lib/utils"
+import { compactSlug, slugify } from "@/lib/utils"
 
 export interface NavItem {
   name: string
@@ -15,46 +15,57 @@ export interface NavSection {
 
 export const shopLinks: NavItem[] = [
   { name: "All Products", href: "/shop" },
-  { name: "Haircare", href: "/haircare" },
-  { name: "Scalp Care", href: "/scalp-care" },
-  { name: "Ritual Kits", href: "/ritual-kits" },
-  { name: "Styling", href: "/styling" },
+  { name: "Hair", href: "/hair" },
+  { name: "Skin", href: "/skin" },
+  { name: "Body", href: "/body" },
+  { name: "Kids", href: "/kids" },
+  { name: "Detergents", href: "/detergents" },
 ]
 
-/** Prefer live catalog slugs so header links don't 404, keep known shop items. */
+const NAV_ALIASES: Record<string, string[]> = {
+  hair: ["hair", "haircare", "hair-care"],
+  skin: ["skin", "skincare", "skin-care"],
+  body: ["body", "bodycare", "body-care", "bodybath", "body-bath"],
+  kids: ["kids", "kid", "children", "child", "baby"],
+  detergents: ["detergents", "detergent", "laundry"],
+}
+
+function categoryTokens(category: { name: string; slug: string }) {
+  return [
+    compactSlug(category.slug),
+    compactSlug(category.name),
+    compactSlug(slugify(category.name)),
+  ]
+}
+
+export function findCategoryForNav(
+  navName: string,
+  categories: { name: string; slug: string }[]
+) {
+  const aliases = NAV_ALIASES[compactSlug(navName)] ?? [compactSlug(navName)]
+  return categories.find((category) => {
+    const tokens = categoryTokens(category)
+    return aliases.some((alias) =>
+      tokens.some(
+        (token) =>
+          token === alias || token.includes(alias) || alias.includes(token)
+      )
+    )
+  })
+}
+
+/** Map the fixed shop nav to live catalog slugs. Never append extra categories. */
 export function shopLinksFromCategories(
   categories: { name: string; slug: string; parentId?: string; order: number }[]
 ): NavItem[] {
-  const topLevel = categories
-    .filter((category) => !category.parentId)
-    .sort((a, b) => a.order - b.order)
+  const topLevel = categories.filter((category) => !category.parentId)
 
-  const byName = new Map(topLevel.map((category) => [category.name.toLowerCase(), category]))
-  const byCompactSlug = new Map(
-    topLevel.map((category) => [compactSlug(category.slug), category])
-  )
-  const fromNav = shopLinks
-    .filter((item) => item.href !== "/shop")
-    .map((item) => {
-      const slug = item.href.replace(/^\//, "")
-      const existing =
-        byName.get(item.name.toLowerCase()) ?? byCompactSlug.get(compactSlug(slug))
-      if (existing) return { name: existing.name, href: `/${existing.slug}` }
-      return item
-    })
-
-  const usedHrefs = new Set(fromNav.map((item) => item.href))
-  const usedCompacts = new Set(
-    fromNav.map((item) => compactSlug(item.href.replace(/^\//, "")))
-  )
-  const extras = topLevel
-    .filter((category) => {
-      const href = `/${category.slug}`
-      return !usedHrefs.has(href) && !usedCompacts.has(compactSlug(category.slug))
-    })
-    .map((category) => ({ name: category.name, href: `/${category.slug}` }))
-
-  return [{ name: "All Products", href: "/shop" }, ...fromNav, ...extras]
+  return shopLinks.map((item) => {
+    if (item.href === "/shop") return item
+    const existing = findCategoryForNav(item.name, topLevel)
+    if (existing) return { name: item.name, href: `/${existing.slug}` }
+    return item
+  })
 }
 
 export const infoLinks: NavItem[] = [

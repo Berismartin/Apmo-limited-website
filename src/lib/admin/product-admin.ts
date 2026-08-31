@@ -17,6 +17,7 @@ import type { Brand, Category, Product, ProductOption, ProductStatus } from "@/t
 import { uploadProductImagesFromFormData } from "./product-image-storage"
 import { requireAdmin } from "./require-admin"
 import { runAdminMutation } from "./mutation-result"
+import { revalidateStorefront } from "./revalidate-storefront"
 
 const adminProductSelect = `
   *,
@@ -298,8 +299,5 @@ function parseVariantOptions(value: string): ProductOption[] {
 }
 
 function revalidateCatalog() {
-  revalidatePath("/")
-  revalidatePath("/shop")
-  revalidatePath("/admin")
-  revalidatePath("/admin/products")
+  revalidateStorefront(["/admin", "/admin/products"])
 }

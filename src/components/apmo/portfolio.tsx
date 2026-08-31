@@ -1,8 +1,8 @@
 "use client"
 
-import Image from "next/image"
 import { motion } from "framer-motion"
 import { portfolio } from "@/components/apmo/data"
+import { CoverPhoto } from "@/components/apmo/cover-photo"
 import { SectionHeading } from "@/components/apmo/animation"
 
 export function Portfolio() {
@@ -27,12 +27,10 @@ export function Portfolio() {
               viewport={{ once: true, margin: "-10% 0px" }}
               transition={{ duration: 0.88, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Image
+              <CoverPhoto
                 src={item.image}
                 alt={item.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 45vw"
-                className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                className="transition-transform duration-700 ease-out group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#351426]/70 via-transparent to-transparent" />
               <figcaption className="absolute bottom-5 left-5 right-5 font-serif text-3xl italic tracking-[-0.04em] text-white">

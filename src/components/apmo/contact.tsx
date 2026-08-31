@@ -1,8 +1,9 @@
 "use client"
 
 import { FiMail, FiMapPin, FiPhone } from "react-icons/fi"
-import { ImageReveal, MagneticButton, Reveal, SectionHeading } from "@/components/apmo/animation"
-import { imageAssets } from "@/components/apmo/data"
+import { CoverPhoto } from "@/components/apmo/cover-photo"
+import { MagneticButton, Reveal, SectionHeading } from "@/components/apmo/animation"
+import { modelImages } from "@/components/apmo/data"
 
 export function Contact() {
   return (
@@ -40,14 +41,12 @@ export function Contact() {
           </Reveal>
         </div>
 
-        <ImageReveal
-          src={imageAssets.product}
-          alt="Apmo Moisturizing Body Lotion"
-          fill
-          sizes="(max-width: 1024px) 100vw, 42vw"
-          className="min-h-[34rem]"
-          parallax
-        />
+        <div className="relative min-h-[34rem] overflow-hidden rounded-[2rem] border border-white shadow-2xl shadow-rose-950/10">
+          <CoverPhoto
+            src={modelImages.bodyPair}
+            alt="Apmo model holding moisturizing lotion and body cream"
+          />
+        </div>
       </div>
     </section>
   )

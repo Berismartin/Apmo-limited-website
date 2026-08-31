@@ -139,7 +139,7 @@ export function Hero() {
             animate="visible"
             custom={6}
           >
-            <MagneticButton href="/shop">Shop Haircare</MagneticButton>
+            <MagneticButton href="/shop">Shop products</MagneticButton>
             <MagneticButton href="/contact" variant="secondary">
               Contact Us
             </MagneticButton>
@@ -175,7 +175,7 @@ export function Hero() {
           >
             <Image
               src={imageAssets.hero}
-              alt="Apmo Body Glow Oil with botanicals"
+              alt="Apmo model holding moisturizing leave-in conditioner"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 48vw"
@@ -193,7 +193,7 @@ export function Hero() {
             <div className="relative h-44 overflow-hidden rounded-[1.4rem]">
               <Image
                 src={imageAssets.heroAlt}
-                alt="Apmo Hair Butter"
+                alt="Close-up of textured hair styled with Apmo"
                 fill
                 sizes="176px"
                 className="object-cover"

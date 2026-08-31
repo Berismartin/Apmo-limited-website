@@ -19,6 +19,11 @@ const EMPTY_CATEGORY_PAGE: PaginationMeta = {
   hasPrev: false,
 }
 
+// Category and product pages are prerendered. If a catalog save misses
+// a path, this still refreshes images within a minute instead of keeping
+// placeholder cards until the next full deploy.
+export const revalidate = 60
+
 
 interface SlugPageProps {
   params: Promise<{ slug: string }>

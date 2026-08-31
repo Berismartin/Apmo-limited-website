@@ -7,6 +7,7 @@ import {
   SmoothScroll,
 } from "@/components/apmo/animation"
 import { About } from "@/components/apmo/about"
+import { Collections, LifestyleBanner, SoftPortraitBand } from "@/components/apmo/collections"
 import { Contact } from "@/components/apmo/contact"
 import { FAQ } from "@/components/apmo/faq"
 import { Features } from "@/components/apmo/features"
@@ -30,8 +31,11 @@ export function ApmoLandingPage({ testimonials = [] }: ApmoLandingPageProps) {
         <div>
           <Hero />
           <SectionDivider />
+          <Collections />
+          <SoftPortraitBand />
           <Features />
           <About />
+          <LifestyleBanner />
           <SectionDivider />
           <Services />
           <Products />

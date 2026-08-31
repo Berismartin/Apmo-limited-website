@@ -163,10 +163,10 @@ export function Header({ categories = [] }: HeaderProps) {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden lg:flex lg:gap-6">
+        <nav className="hidden lg:flex lg:flex-wrap lg:items-center lg:justify-center lg:gap-x-5 lg:gap-y-1">
           <Link
             href="/blog"
-            className="text-sm font-medium text-foreground transition-colors hover:text-foreground/70"
+            className="whitespace-nowrap text-sm font-medium text-foreground transition-colors hover:text-foreground/70"
           >
             Blog
           </Link>
@@ -174,7 +174,7 @@ export function Header({ categories = [] }: HeaderProps) {
             <Link
               key={item.name}
               href={item.href}
-              className="text-sm font-medium text-foreground transition-colors hover:text-foreground/70"
+              className="whitespace-nowrap text-sm font-medium text-foreground transition-colors hover:text-foreground/70"
             >
               {item.name}
             </Link>

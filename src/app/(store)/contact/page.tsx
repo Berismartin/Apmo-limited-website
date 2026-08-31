@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -53,22 +54,32 @@ export default function ContactPage() {
 
   return (
     <div className="bg-[#fff8f1]">
-      <section className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-        <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-rose-600">
+      <section className="relative isolate min-h-[22rem] overflow-hidden lg:min-h-[28rem]">
+        <Image
+          src="/images/new_images/models/IMG_4619.jpg"
+          alt="Apmo model holding body lotion and cream"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#351426]/82 via-[#351426]/50 to-[#351426]/25" />
+        <div className="relative mx-auto flex min-h-[22rem] max-w-[1440px] flex-col justify-end px-4 py-16 sm:px-6 lg:min-h-[28rem] lg:px-8 lg:py-20">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-rose-100">
             Contact Apmo
           </p>
-          <h1 className="mt-4 font-serif text-5xl italic leading-[0.95] tracking-[-0.05em] text-[#351426] sm:text-7xl">
-            Tell us your hair story. We will help with the next step.
+          <h1 className="mt-4 max-w-3xl font-serif text-5xl italic leading-[0.95] tracking-[-0.05em] text-white sm:text-7xl">
+            Tell us your hair and skin story.
           </h1>
-          <p className="mt-6 text-lg leading-8 text-[#6c4354]">
-            Ask about products, consultations, hair rituals, orders, or the
-            upcoming full website launch. The form is ready for a future API or
-            form-service integration.
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/85">
+            Ask about products, consultations, orders, or which routine fits
+            your texture. We will help with the next step.
           </p>
         </div>
+      </section>
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+      <section className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
           <div className="space-y-4">
             {[
               {
@@ -207,7 +218,7 @@ export default function ContactPage() {
             </form>
           </CardContent>
         </Card>
-      </div>
+        </div>
       </section>
     </div>
   )

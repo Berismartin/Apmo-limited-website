@@ -4,7 +4,8 @@ import Link from "next/link"
 import { ArrowRight, Heart, Leaf, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { imageAssets } from "@/components/apmo/data"
+import { modelImages } from "@/components/apmo/data"
+import { EditorialHero } from "@/components/layout/editorial-hero"
 
 export const metadata: Metadata = {
   title: "About Apmo",
@@ -15,58 +16,30 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="bg-[#fff8f1]">
-      <section className="mx-auto grid max-w-[1440px] gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:px-8 lg:py-24">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-rose-600">
-            About Apmo
-          </p>
-          <h1 className="mt-4 font-serif text-5xl italic leading-[0.95] tracking-[-0.05em] text-[#351426] sm:text-7xl">
-            Haircare that feels personal, polished, and easy to trust.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-[#6c4354]">
-            Apmo is a textured haircare brand focused on moisture-first
-            products, practical education, and confidence-led beauty rituals.
-            Every product and page is designed to help customers understand what
-            their hair needs before they buy.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" className="rounded-full bg-[#351426] px-7 hover:bg-[#4b1c34]">
-              <Link href="/shop">
-                Shop products
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="rounded-full border-rose-200 px-7">
-              <Link href="/contact">Ask for guidance</Link>
-            </Button>
-          </div>
-        </div>
+      <EditorialHero
+        eyebrow="About Apmo"
+        title="Hair, skin, and body care that feels personal."
+        copy="Apmo is a moisture-first brand photographed with real people — not stock faces. Every formula is made to be understood before you buy."
+        image={modelImages.bodyPair}
+        imageAlt="Apmo model holding moisturizing lotion and body cream"
+        primaryHref="/shop"
+        primaryLabel="Shop products"
+        secondaryHref="/contact"
+        secondaryLabel="Ask for guidance"
+      />
 
-        <div className="relative min-h-[34rem] overflow-hidden rounded-[2rem] border border-white bg-white shadow-2xl shadow-rose-950/10">
-          <Image
-            src={imageAssets.heroAlt}
-            alt="Apmo haircare ritual"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 45vw"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#351426]/45 via-transparent to-transparent" />
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-[1440px] px-4 pb-20 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <div className="grid gap-5 md:grid-cols-3">
           {[
             {
               icon: Heart,
               title: "Care Before Commerce",
-              copy: "The store is built around helping customers understand products, routines, and realistic hair goals.",
+              copy: "The store is built around helping customers understand products, routines, and realistic hair and skin goals.",
             },
             {
               icon: Leaf,
               title: "Moisture-first Rituals",
-              copy: "Apmo focuses on detangling, scalp comfort, softness, and easy maintenance for textured hair.",
+              copy: "Apmo focuses on detangling, softness, glow, and easy maintenance for textured hair and skin.",
             },
             {
               icon: Sparkles,
@@ -88,22 +61,36 @@ export default function AboutPage() {
           ))}
         </div>
 
-        <div className="mt-12 rounded-[2rem] border border-rose-100 bg-white/80 p-6 shadow-xl shadow-rose-950/5 sm:p-10">
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">
-                What you can do here
-              </p>
-              <h2 className="mt-3 font-serif text-4xl italic tracking-[-0.05em] text-[#351426]">
-                A working store for the full Apmo launch.
-              </h2>
-            </div>
-            <ul className="grid gap-3 text-muted-foreground sm:grid-cols-2">
-              <li>Browse Apmo haircare, scalp care, styling, and ritual kits.</li>
+        <div className="mt-12 grid gap-5 lg:grid-cols-2">
+          <div className="relative min-h-[28rem] overflow-hidden rounded-[2rem] border border-white shadow-2xl shadow-rose-950/10">
+              <Image
+                src={modelImages.hairLeaveIn}
+                alt="Apmo model holding moisturizing leave-in conditioner"
+                fill
+                loading="lazy"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
+          </div>
+          <div className="flex flex-col justify-center rounded-[2rem] border border-rose-100 bg-white/80 p-6 shadow-xl shadow-rose-950/5 sm:p-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">
+              What you can do here
+            </p>
+            <h2 className="mt-3 font-serif text-4xl italic tracking-[-0.05em] text-[#351426]">
+              Shop hair, skin, body, kids, and home care.
+            </h2>
+            <ul className="mt-6 grid gap-3 text-muted-foreground">
+              <li>Browse collections for Hair, Skin, Body, Kids, and Detergents.</li>
               <li>Open product pages with images, variants, cart actions, and details.</li>
-              <li>Use search, wishlist, cart, checkout, FAQ, account, and contact routes.</li>
-              <li>Read customer stories on the new testimonials page.</li>
+              <li>Use search, wishlist, cart, checkout, FAQ, account, and contact.</li>
+              <li>Read customer stories on the testimonials page.</li>
             </ul>
+            <Button asChild size="lg" className="mt-8 w-fit rounded-full bg-[#351426] px-7 hover:bg-[#4b1c34]">
+              <Link href="/shop">
+                Shop the collection
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

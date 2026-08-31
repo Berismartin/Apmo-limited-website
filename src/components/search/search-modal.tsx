@@ -11,10 +11,8 @@ import type { Product } from "@/types"
 import { getSearchableProductsAction } from "@/lib/actions/search"
 import { shopLinks } from "@/lib/navigation"
 
-// Real category pages, not free-text queries: a chip like "Scalp Care"
-// rarely appears verbatim in a product's name/description/tags, so treating
-// it as a search term returned zero results for most categories. Linking
-// straight to the category page always shows every matching product.
+// Real category pages, not free-text queries. Linking straight to the
+// category page always shows every matching product.
 const popularCategories = shopLinks.filter((link) => link.href !== "/shop")
 
 interface SearchModalProps {

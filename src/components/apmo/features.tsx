@@ -1,12 +1,22 @@
 "use client"
 
 import { AnimatedCard, SectionHeading } from "@/components/apmo/animation"
-import { features } from "@/components/apmo/data"
+import { features, modelImages } from "@/components/apmo/data"
+import { CoverPhoto } from "@/components/apmo/cover-photo"
 
 export function Features() {
   return (
-    <section className="relative z-10 px-4 py-24 text-[#351426] sm:px-6 lg:py-32">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative z-10 overflow-hidden px-4 py-24 text-[#351426] sm:px-6 lg:py-32">
+      <div className="pointer-events-none absolute inset-0">
+        <CoverPhoto
+          src={modelImages.hairLeaveIn}
+          alt=""
+          objectPosition="top"
+          className="opacity-[0.14]"
+        />
+        <div className="absolute inset-0 bg-[#fff8f1]/78" />
+      </div>
+      <div className="relative mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="The experience"
           title="Soft power for textured hair"

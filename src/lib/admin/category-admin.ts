@@ -1,6 +1,5 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createSupabaseAdminClient } from "@/lib/supabase/server"
 import { slugify } from "@/lib/utils"
@@ -12,6 +11,7 @@ import type { Category } from "@/types"
 import { uploadProductImagesFromFormData } from "./product-image-storage"
 import { requireAdmin } from "./require-admin"
 import { runAdminMutation } from "./mutation-result"
+import { revalidateStorefront } from "./revalidate-storefront"
 
 export async function getAdminCategories(): Promise<Category[]> {
   const supabase = createSupabaseAdminClient()
@@ -137,9 +137,5 @@ function requiredText(formData: FormData, key: string) {
 }
 
 function revalidateCategories() {
-  revalidatePath("/")
-  revalidatePath("/shop")
-  revalidatePath("/admin")
-  revalidatePath("/admin/categories")
-  revalidatePath("/admin/products")
+  revalidateStorefront(["/admin", "/admin/categories", "/admin/products"])
 }

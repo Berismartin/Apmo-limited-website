@@ -2,6 +2,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Separator } from "@/components/ui/separator"
 import { siteConfig } from "@/lib/config"
+import { shopLinks } from "@/lib/navigation"
 
 function IconInstagram({ className }: { className?: string }) {
   return (
@@ -28,12 +29,7 @@ function IconTikTok({ className }: { className?: string }) {
 }
 
 const footerLinks = {
-  shop: [
-    { name: "All Products", href: "/shop" },
-    { name: "Haircare", href: "/haircare" },
-    { name: "Scalp Care", href: "/scalp-care" },
-    { name: "Ritual Kits", href: "/ritual-kits" },
-  ],
+  shop: shopLinks,
   company: [
     { name: "About Apmo", href: "/about" },
     { name: "Testimonials", href: "/testimonials" },

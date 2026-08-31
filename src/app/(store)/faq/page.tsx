@@ -6,6 +6,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { CoverPhoto } from "@/components/apmo/cover-photo"
+import { modelImages } from "@/components/apmo/data"
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -57,7 +59,17 @@ const faqs = [
 
 export default function FAQPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+    <div className="relative isolate overflow-hidden">
+      <div className="pointer-events-none absolute inset-0">
+        <CoverPhoto
+          src={modelImages.hairLeaveIn}
+          alt=""
+          objectPosition="top"
+          className="opacity-[0.14]"
+        />
+        <div className="absolute inset-0 bg-[#fff8f1]/82" />
+      </div>
+      <div className="relative mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
       <h1 className="text-3xl font-bold tracking-tight">
         Frequently Asked Questions
       </h1>
@@ -91,6 +103,7 @@ export default function FAQPage() {
         >
           Contact Support
         </Link>
+      </div>
       </div>
     </div>
   )

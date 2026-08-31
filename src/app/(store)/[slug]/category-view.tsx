@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { breadcrumbJsonLd } from "@/lib/structured-data"
 import {
   Breadcrumb,
@@ -11,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { ProductGrid } from "@/components/products/product-grid"
 import { Pagination } from "@/components/products/pagination"
+import { modelImageForCategory } from "@/components/apmo/data"
 import type { Category, Product, PaginationMeta } from "@/types"
 
 interface CategoryViewProps {
@@ -41,7 +43,8 @@ export function CategoryView({
   ancestors = [],
 }: CategoryViewProps) {
   const parentTrail = ancestors.filter((cat) => cat.id !== category.id)
-  // Full ancestor trail for breadcrumbs — e.g. Shop > Haircare
+  const heroImage = modelImageForCategory(category.slug, category.name)
+  // Full ancestor trail for breadcrumbs — e.g. Shop > Hair
   const trail = [
     { name: "Shop", href: "/shop" },
     ...parentTrail.map((c) => ({ name: c.name, href: `/${c.slug}` })),
@@ -49,6 +52,18 @@ export function CategoryView({
   ]
 
   return (
+    <div>
+      <div className="relative isolate h-[16rem] overflow-hidden sm:h-[20rem] lg:h-[24rem]">
+        <Image
+          src={heroImage}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#fff8f1] via-[#fff8f1]/35 to-[#351426]/25" />
+      </div>
     <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
@@ -135,6 +150,7 @@ export function CategoryView({
           basePath={`/${category.slug}`}
         />
       </div>
+    </div>
     </div>
   )
 }

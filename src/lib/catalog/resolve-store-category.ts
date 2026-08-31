@@ -1,4 +1,4 @@
-import { shopLinks } from "@/lib/navigation"
+import { findCategoryForNav, shopLinks } from "@/lib/navigation"
 import { compactSlug, slugify } from "@/lib/utils"
 import { categoryRepository } from "@/lib/repositories"
 import type { Category } from "@/types"
@@ -6,7 +6,7 @@ import type { Category } from "@/types"
 /**
  * Resolve a storefront category slug to a catalog category.
  * Falls back to a lightweight placeholder for known shop nav links so
- * empty collections (e.g. /haircare) render instead of a 404.
+ * empty collections (e.g. /hair) render instead of a 404.
  */
 export async function resolveStoreCategory(slug: string): Promise<Category | null> {
   try {
@@ -32,10 +32,18 @@ export async function resolveStoreCategory(slug: string): Promise<Category | nul
   })
   if (match) return match
 
-  const navItem = shopLinks.find(
-    (item) => item.href === `/${slug}` && item.href !== "/shop"
-  )
+  const navItem = shopLinks.find((item) => {
+    if (item.href === "/shop") return false
+    return (
+      item.href === `/${slug}` ||
+      compactSlug(item.name) === wanted ||
+      compactSlug(item.href.replace(/^\//, "")) === wanted
+    )
+  })
   if (!navItem) return null
+
+  const fromNav = findCategoryForNav(navItem.name, listed)
+  if (fromNav) return fromNav
 
   return {
     id: `nav-${slug}`,
