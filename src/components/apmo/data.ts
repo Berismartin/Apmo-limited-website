@@ -29,10 +29,12 @@ export const imageAssets = {
   texture: "/images/site_images/FRNK-2035.jpg",
 } as const
 
+// Real brand pillars (not fabricated metrics) — these describe what
+// Apmo actually is, mirroring the About page's messaging.
 export const stats = [
-  { value: 12, suffix: "+", label: "signature formulas" },
-  { value: 8, suffix: "k+", label: "hair journeys supported" },
-  { value: 96, suffix: "%", label: "reported softer curls" },
+  { title: "Moisture-first", label: "Hydration rituals for coils, curls, and protective styles" },
+  { title: "Consultative", label: "Routine guidance before you buy, not after" },
+  { title: "Textured-hair focused", label: "Every product designed around real texture needs" },
 ] as const
 
 export const features = [
@@ -128,7 +130,7 @@ export const faqs = [
   {
     question: "Is the website live for orders yet?",
     answer:
-      "The public reference site is currently under construction. This recreation presents the premium launch experience and directs visitors to contact the team.",
+      "Yes — the shop is live. Browse products, add them to your cart, and check out directly on the site. If you'd like guidance first, reach out on the Contact page.",
   },
 ] as const
 
@@ -153,5 +155,5 @@ export const timeline = [
 export const trustMarks = [
   { icon: FiCheckCircle, label: "Textured hair focused" },
   { icon: FiHeart, label: "Community-led beauty" },
-  { icon: FiAward, label: "Premium launch experience" },
+  { icon: FiAward, label: "Premium haircare rituals" },
 ] as const

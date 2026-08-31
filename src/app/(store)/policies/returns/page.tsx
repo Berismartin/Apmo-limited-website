@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
+import { siteConfig } from "@/lib/config"
 
 export const metadata: Metadata = {
   title: "Returns & Refunds",
-  description: "Our return and refund policy. Easy 30-day returns.",
+  description: "Apmo's return and refund policy — easy 30-day returns.",
 }
 
 export default function ReturnsPolicyPage() {
@@ -16,35 +17,43 @@ export default function ReturnsPolicyPage() {
           30-Day Return Policy
         </h2>
         <p>
-          We want you to be completely satisfied with your purchase. If you're
-          not happy with your order, you can return it within 30 days of
-          delivery for a full refund.
+          We want you to be happy with every Apmo order. If a product
+          isn&apos;t right for you, you can return it within 30 days of
+          delivery for a refund.
         </p>
 
         <h2 className="text-xl font-semibold text-foreground">
           Return Conditions
         </h2>
         <ul className="list-inside list-disc space-y-2">
-          <li>Items must be unused and in their original packaging</li>
-          <li>Tags must be attached</li>
-          <li>Sale items are final sale and cannot be returned</li>
-          <li>Gift cards are non-refundable</li>
+          <li>Items must be unused, unopened, and in their original packaging</li>
+          <li>A proof of purchase (order number or receipt) is required</li>
+          <li>Sale and clearance items are final sale and cannot be returned</li>
         </ul>
 
         <h2 className="text-xl font-semibold text-foreground">
-          How to Return
+          How to Return an Item
         </h2>
         <ol className="list-inside list-decimal space-y-2">
-          <li>Log into your account and go to Order History</li>
-          <li>Select the order and items you wish to return</li>
-          <li>Print the prepaid return label</li>
-          <li>Pack items securely and drop off at any shipping location</li>
+          <li>
+            Email {siteConfig.contact.email} with your order number and the
+            reason for your return
+          </li>
+          <li>Our team will confirm your return and share drop-off or pickup instructions</li>
+          <li>Pack the item securely in its original packaging</li>
         </ol>
 
         <h2 className="text-xl font-semibold text-foreground">Refunds</h2>
         <p>
-          Refunds are processed within 5-7 business days of receiving your
-          return. The refund will be credited to your original payment method.
+          Once we receive and inspect your returned item, we&apos;ll notify
+          you by email and process your refund to your original payment
+          method within 5-7 business days.
+        </p>
+
+        <h2 className="text-xl font-semibold text-foreground">Questions?</h2>
+        <p>
+          Reach out to {siteConfig.contact.email} any time and we&apos;ll be
+          happy to help.
         </p>
       </div>
     </div>

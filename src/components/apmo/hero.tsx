@@ -6,7 +6,6 @@ import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { useEffect, useRef } from "react"
 import {
-  CountUp,
   MagneticButton,
   Reveal,
 } from "@/components/apmo/animation"
@@ -128,10 +127,9 @@ export function Hero() {
             animate="visible"
             custom={5}
           >
-            Apmo is preparing a warm, product-led beauty destination for haircare
-            education, nourishing formulas, and confidence-first rituals. The
-            reference site is under construction, so this launch experience turns
-            the same simple promise into a cinematic digital storefront.
+            Apmo is a warm, product-led beauty destination for haircare
+            education, nourishing formulas, and confidence-first rituals —
+            browse the shop, learn your routine, and order online today.
           </motion.p>
 
           <motion.div
@@ -150,14 +148,14 @@ export function Hero() {
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {stats.map((stat, index) => (
               <Reveal
-                key={stat.label}
+                key={stat.title}
                 delay={1.3 + index * 0.1}
                 className="rounded-3xl border border-rose-100 bg-white/75 p-5 shadow-xl shadow-rose-950/5 backdrop-blur-xl"
               >
-                <p className="font-serif text-4xl italic tracking-[-0.04em]">
-                  <CountUp value={stat.value} suffix={stat.suffix} />
+                <p className="font-serif text-xl italic tracking-[-0.04em]">
+                  {stat.title}
                 </p>
-                <p className="mt-2 text-xs uppercase tracking-[0.24em] text-[#8f6675]">
+                <p className="mt-2 text-xs uppercase tracking-[0.2em] text-[#8f6675]">
                   {stat.label}
                 </p>
               </Reveal>

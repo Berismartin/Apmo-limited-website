@@ -37,14 +37,13 @@ export async function getAdminCategory(id: string): Promise<Category | null> {
 }
 
 export async function createCategoryAction(formData: FormData) {
-  let id = ""
-  const result = await runAdminMutation(async () => {
+    const result = await runAdminMutation(async () => {
     await requireAdmin()
-    id = await upsertCategory(formData)
+    await upsertCategory(formData)
   })
   if (result?.error) return result
   revalidateCategories()
-  redirect(`/admin/categories/${id}`)
+  redirect("/admin/categories")
 }
 
 export async function updateCategoryAction(formData: FormData) {
@@ -57,7 +56,7 @@ export async function updateCategoryAction(formData: FormData) {
   })
   if (result?.error) return result
   revalidateCategories()
-  redirect(`/admin/categories/${id}`)
+  redirect("/admin/categories")
 }
 
 export async function deleteCategoryAction(formData: FormData) {

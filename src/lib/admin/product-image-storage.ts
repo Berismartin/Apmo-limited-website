@@ -11,7 +11,7 @@ export const maxImageUploadBytes = MAX_IMAGE_UPLOAD_BYTES
 // resizing down before upload shrinks both the upload payload and every
 // later page load — instead of shipping the original to every visitor.
 const MAX_IMAGE_DIMENSION = 1600
-const WEBP_QUALITY = 82
+const IMAGE_QUALITY = 82
 
 // Upload several images at once, but cap concurrency so a big batch doesn't
 // open dozens of simultaneous connections to Supabase Storage.
@@ -70,10 +70,18 @@ function extensionFromFile(file: File): string {
 }
 
 /**
- * Resize/re-encode an uploaded image before it's stored. Animated GIFs are
- * passed through untouched (sharp would flatten them to a single frame).
- * If sharp isn't usable in this environment, or fails on a specific file,
- * the original file is uploaded as-is rather than failing the upload.
+ * Resize an uploaded image before it's stored, re-encoding it in the SAME
+ * format it was uploaded in (jpeg stays jpeg, png stays png, webp stays
+ * webp). Animated GIFs are passed through untouched (sharp would flatten
+ * them to a single frame). If sharp isn't usable in this environment, or
+ * fails on a specific file, the original file is uploaded as-is rather than
+ * failing the upload.
+ *
+ * Deliberately NOT converting everything to webp: a storage bucket's
+ * allowed-mime-types allowlist (see the apmo_bucket migrations) may not
+ * include whatever format this converts to, and changing the format on the
+ * way out is a good way to have uploads start silently failing against an
+ * allowlist that was never updated to expect it.
  */
 async function prepareImage(file: File): Promise<PreparedImage> {
   const input = Buffer.from(await file.arrayBuffer())
@@ -89,7 +97,7 @@ async function prepareImage(file: File): Promise<PreparedImage> {
   }
 
   try {
-    const { data, info } = await sharp(input, { animated: false })
+    let pipeline = sharp(input, { animated: false })
       // Respect EXIF orientation before the metadata that encodes it is stripped.
       .rotate()
       .resize({
@@ -98,16 +106,29 @@ async function prepareImage(file: File): Promise<PreparedImage> {
         fit: "inside",
         withoutEnlargement: true,
       })
-      .webp({ quality: WEBP_QUALITY })
-      .toBuffer({ resolveWithObject: true })
 
-    return {
-      buffer: data,
-      contentType: "image/webp",
-      extension: "webp",
-      width: info.width,
-      height: info.height,
+    let contentType = file.type
+    let extension = originalExtension
+
+    if (file.type === "image/jpeg" || file.type === "image/jpg") {
+      pipeline = pipeline.jpeg({ quality: IMAGE_QUALITY })
+      contentType = "image/jpeg"
+      extension = "jpg"
+    } else if (file.type === "image/png") {
+      pipeline = pipeline.png({ compressionLevel: 9 })
+      contentType = "image/png"
+      extension = "png"
+    } else if (file.type === "image/webp") {
+      pipeline = pipeline.webp({ quality: IMAGE_QUALITY })
+      contentType = "image/webp"
+      extension = "webp"
     }
+    // Anything else (e.g. avif, tiff): resize only, keep the original
+    // container format sharp inferred from the input rather than guessing.
+
+    const { data, info } = await pipeline.toBuffer({ resolveWithObject: true })
+
+    return { buffer: data, contentType, extension, width: info.width, height: info.height }
   } catch (error) {
     console.error(
       `[product-image-storage] sharp failed to process "${file.name}" — uploading it unresized.`,

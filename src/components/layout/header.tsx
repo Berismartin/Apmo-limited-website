@@ -159,6 +159,12 @@ export function Header({ categories = [] }: HeaderProps) {
 
         {/* Desktop nav */}
         <nav className="hidden lg:flex lg:gap-6">
+          <Link
+            href="/blog"
+            className="text-sm font-medium text-foreground transition-colors hover:text-foreground/70"
+          >
+            Blog
+          </Link>
           {shopLinks.map((item) => (
             <Link
               key={item.name}
@@ -168,12 +174,6 @@ export function Header({ categories = [] }: HeaderProps) {
               {item.name}
             </Link>
           ))}
-          <Link
-            href="/blog"
-            className="text-sm font-medium text-foreground transition-colors hover:text-foreground/70"
-          >
-            Blog
-          </Link>
         </nav>
 
         {/* Actions */}

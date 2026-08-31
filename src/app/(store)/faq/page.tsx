@@ -26,7 +26,7 @@ const faqs = [
   {
     question: "Is the full Apmo website live?",
     answer:
-      "The public reference site is currently under construction. This storefront is structured so customers can browse products and contact Apmo while the full launch is prepared.",
+      "Yes — the shop is fully live. Browse products, add them to your cart, and check out directly on the site.",
   },
   {
     question: "How should I use the Petangler Mist?",

@@ -5,12 +5,12 @@ import { testimonialRepository } from "@/lib/repositories"
 export const metadata: Metadata = {
   title: "Apmo — Premium Textured Haircare Rituals",
   description:
-    "A cinematic recreation of Apmo's coming-soon website with premium textured haircare storytelling, product rituals, and a contact-led launch experience.",
+    "Shop Apmo's premium textured haircare rituals — moisture-first products, practical hair education, and confidence-led beauty routines.",
   alternates: { canonical: "/" },
   openGraph: {
     title: "Apmo — Premium Textured Haircare Rituals",
     description:
-      "A premium cinematic launch experience for Apmo's textured haircare products and services.",
+      "Moisture-first haircare products, practical hair education, and confidence-led beauty routines from Apmo.",
     type: "website",
   },
   keywords: [

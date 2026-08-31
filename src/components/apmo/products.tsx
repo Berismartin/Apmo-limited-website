@@ -12,8 +12,8 @@ export function Products() {
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <SectionHeading
             eyebrow="Products"
-            title="Premium formulas, cinematic presence"
-            copy="The product experience uses tactile photography, soft shadows, and editorial motion so every formula feels considered before a visitor ever reaches checkout."
+            title="Premium formulas, made for texture"
+            copy="Every Apmo formula is designed around real textured-hair needs — moisture, detangling, and scalp comfort — so you can shop with confidence."
             align="left"
           />
           <MagneticButton href="/shop" variant="secondary" className="w-fit">

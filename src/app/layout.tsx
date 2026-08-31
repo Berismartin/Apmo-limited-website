@@ -36,7 +36,6 @@ export const metadata: Metadata = {
       template: `%s | ${siteConfig.name}`,
     },
     description: siteConfig.description,
-    creator: (siteConfig.social.twitter as string) ? `@${(siteConfig.social.twitter as string).split("/").pop()}` : undefined,
   },
   robots: {
     index: true,

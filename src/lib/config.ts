@@ -31,11 +31,9 @@ export const siteConfig = {
 
   // Social links (set to "" to hide)
   social: {
-    twitter: "",
-    instagram: "",
-    facebook: "",
-    youtube: "",
-    tiktok: "",
+    instagram: "https://www.instagram.com/apmo_cosmetics?igsi=MXM3dzd6Zm9rcjVyaw==",
+    facebook: "https://www.facebook.com/share/1BqKigfBTP/?mibextid=wwXIfr",
+    tiktok: "https://www.tiktok.com/@apmocosmetics?_r=1&_t=ZS-99LCthEWzSC",
   },
 
   // Shipping

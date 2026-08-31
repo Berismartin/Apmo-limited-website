@@ -63,14 +63,13 @@ export async function getAdminTestimonial(id: string): Promise<Testimonial | nul
 }
 
 export async function createTestimonialAction(formData: FormData) {
-  let id = ""
-  const result = await runAdminMutation(async () => {
+    const result = await runAdminMutation(async () => {
     await requireAdmin()
-    id = await upsertTestimonial(formData)
+    await upsertTestimonial(formData)
   })
   if (result?.error) return result
   revalidateTestimonials()
-  redirect(`/admin/testimonials/${id}`)
+  redirect("/admin/testimonials")
 }
 
 export async function updateTestimonialAction(formData: FormData) {
@@ -83,7 +82,7 @@ export async function updateTestimonialAction(formData: FormData) {
   })
   if (result?.error) return result
   revalidateTestimonials()
-  redirect(`/admin/testimonials/${id}`)
+  redirect("/admin/testimonials")
 }
 
 export async function deleteTestimonialAction(formData: FormData) {

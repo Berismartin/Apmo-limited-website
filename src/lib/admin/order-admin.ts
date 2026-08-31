@@ -85,14 +85,13 @@ export async function getAdminOrder(id: string): Promise<Order | null> {
 }
 
 export async function createOrderAction(formData: FormData) {
-  let id = ""
   const result = await runAdminMutation(async () => {
     await requireAdmin()
-    id = await upsertOrder(formData)
+    await upsertOrder(formData)
   })
   if (result?.error) return result
   revalidateOrders()
-  redirect(`/admin/orders/${id}`)
+  redirect("/admin/orders")
 }
 
 export async function updateOrderAction(formData: FormData) {
@@ -105,7 +104,7 @@ export async function updateOrderAction(formData: FormData) {
   })
   if (result?.error) return result
   revalidateOrders()
-  redirect(`/admin/orders/${id}`)
+  redirect("/admin/orders")
 }
 
 export async function updateOrderStatusAction(formData: FormData) {

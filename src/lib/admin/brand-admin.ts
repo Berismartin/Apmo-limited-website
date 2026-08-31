@@ -36,7 +36,6 @@ export async function getAdminBrand(id: string): Promise<Brand | null> {
 }
 
 export async function createBrandAction(formData: FormData) {
-  let id = ""
   const result = await runAdminMutation(async () => {
     await requireAdmin()
     const supabase = createSupabaseAdminClient()
@@ -45,18 +44,15 @@ export async function createBrandAction(formData: FormData) {
     const slug = slugify(String(formData.get("slug") || name))
     const description = String(formData.get("description") ?? "").trim()
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("brands")
       .insert({ name, slug, description })
-      .select("id")
-      .single()
 
     if (error) throw new Error(error.message)
-    id = data.id as string
   })
   if (result?.error) return result
   revalidateBrands()
-  redirect(`/admin/brands/${id}`)
+  redirect("/admin/brands")
 }
 
 export async function updateBrandAction(formData: FormData) {
@@ -81,7 +77,7 @@ export async function updateBrandAction(formData: FormData) {
   })
   if (result?.error) return result
   revalidateBrands()
-  redirect(`/admin/brands/${id}`)
+  redirect("/admin/brands")
 }
 
 export async function deleteBrandAction(formData: FormData) {

@@ -11,8 +11,8 @@ export function Contact() {
         <div className="rounded-[2.5rem] border border-rose-100 bg-gradient-to-br from-white to-rose-50 p-6 shadow-2xl shadow-rose-950/10 backdrop-blur-xl sm:p-10">
           <SectionHeading
             eyebrow="Contact"
-            title="The cool thing is coming soon"
-            copy="The reference site leads with a direct under-construction message and a contact path. This section keeps that conversion clear while giving the brand a more memorable launch presence."
+            title="We're here to help"
+            copy="Have a question about a product, your order, or which routine fits your hair? Reach out and the Apmo team will get back to you."
             align="left"
           />
 

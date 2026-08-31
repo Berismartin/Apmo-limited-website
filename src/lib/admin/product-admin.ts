@@ -91,7 +91,7 @@ export async function updateProductAction(formData: FormData) {
   })
   if (result?.error) return result
   revalidateCatalog()
-  redirect(`/admin/products/${productId}`)
+  redirect("/admin/products")
 }
 
 export async function deleteProductAction(formData: FormData) {

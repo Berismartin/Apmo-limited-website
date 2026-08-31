@@ -63,14 +63,13 @@ export async function getAdminBlogPost(id: string): Promise<BlogPost | null> {
 }
 
 export async function createBlogPostAction(formData: FormData) {
-  let id = ""
-  const result = await runAdminMutation(async () => {
+    const result = await runAdminMutation(async () => {
     await requireAdmin()
-    id = await upsertBlogPost(formData)
+    await upsertBlogPost(formData)
   })
   if (result?.error) return result
   revalidateBlog()
-  redirect(`/admin/blog/${id}`)
+  redirect("/admin/blog")
 }
 
 export async function updateBlogPostAction(formData: FormData) {
@@ -83,7 +82,7 @@ export async function updateBlogPostAction(formData: FormData) {
   })
   if (result?.error) return result
   revalidateBlog()
-  redirect(`/admin/blog/${id}`)
+  redirect("/admin/blog")
 }
 
 export async function deleteBlogPostAction(formData: FormData) {
