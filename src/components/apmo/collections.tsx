@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { collections, modelImages } from "@/components/apmo/data"
+import { collections, heroImages, modelImages } from "@/components/apmo/data"
 import { CoverPhoto } from "@/components/apmo/cover-photo"
 import { MagneticButton, Reveal, SectionHeading } from "@/components/apmo/animation"
 
@@ -51,7 +51,7 @@ export function LifestyleBanner() {
   return (
     <section className="relative isolate min-h-[28rem] overflow-hidden lg:min-h-[34rem]">
       <CoverPhoto
-        src={modelImages.hairSmile}
+        src={heroImages.inRealLife}
         alt="Apmo model with textured hair and haircare products"
         objectPosition="center top"
       />

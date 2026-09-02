@@ -24,13 +24,13 @@ const MODEL = "/images/new_images/models"
 
 export const modelImages = {
   hairBed: `${MODEL}/IMG_4622.jpg`,
-  hairSmile: `${MODEL}/IMG_4623.jpg`,
+  hairSmile: `${MODEL}/image.png`,
   hairPortrait: `${MODEL}/IMG_4626.jpg`,
   hairLeaveIn: `${MODEL}/IMG_4873.jpg`,
   hairWash: `${MODEL}/IMG_4884.jpg`,
   hairProducts: `${MODEL}/_DSF2021.jpg`,
   skinJars: `${MODEL}/IMG_4605.jpg`,
-  skinJarsAlt: `${MODEL}/IMG_4604.jpg`,
+  skinJarsAlt: `${MODEL}/WhatsApp Image 2026-09-01 at 00.34.43.jpeg`,
   bodyLooking: `${MODEL}/IMG_4600.jpg`,
   bodyLotion: `${MODEL}/IMG_4593.jpg`,
   bodyPair: `${MODEL}/IMG_4619.jpg`,
@@ -40,12 +40,33 @@ export const modelImages = {
   jarsFocus: `${MODEL}/_DSF2086.jpg`,
 } as const
 
+/**
+ * Hero photos only — homepage, inner pages, category banners, and the
+ * “In real life” homepage band. Change a path here without affecting
+ * collections, gallery, or body sections even if the filename happens
+ * to match a photo used elsewhere.
+ */
+export const heroImages = {
+  home: `${MODEL}/IMG_4873.jpg`,
+  homeAlt: `${MODEL}/IMG_4626.jpg`,
+  about: `${MODEL}/IMG_4619.jpg`,
+  testimonials: `${MODEL}/IMG_4884.jpg`,
+  contact: `${MODEL}/IMG_4619.jpg`,
+  faq: `${MODEL}/IMG_4873.jpg`,
+  inRealLife: `${MODEL}/image.png`,
+  categories: {
+    hair: `${MODEL}/image.png`,
+    skin: `${MODEL}/IMG_4605.jpg`,
+    body: `${MODEL}/IMG_4619.jpg`,
+    kids: `${MODEL}/IMG_4873.jpg`,
+    detergents: `${MODEL}/IMG_4601.jpg`,
+  },
+} as const
+
 export const imageAssets = {
-  hero: modelImages.hairLeaveIn,
-  heroAlt: modelImages.hairPortrait,
-  founder: modelImages.bodyPair,
-  salon: modelImages.hairWash,
-  product: modelImages.bodyPair,
+  founder: "/images/new_images/_DSF2605.jpg",
+  salon: "/images/new_images/_DSF2608.jpg",
+  product: "/images/new_images/_DSF2605.jpg",
   ritual: modelImages.hairSmile,
   team: modelImages.skinJars,
   texture: modelImages.hairBed,
@@ -86,16 +107,16 @@ export const collections = [
 
 export function modelImageForCategory(slug: string, name: string) {
   const token = `${compactSlug(slug)}${compactSlug(name)}`
-  if (token.includes("hair")) return modelImages.hairSmile
-  if (token.includes("skin")) return modelImages.skinJars
-  if (token.includes("body")) return modelImages.bodyPair
+  if (token.includes("hair")) return heroImages.categories.hair
+  if (token.includes("skin")) return heroImages.categories.skin
+  if (token.includes("body")) return heroImages.categories.body
   if (token.includes("kid") || token.includes("baby") || token.includes("child")) {
-    return modelImages.hairLeaveIn
+    return heroImages.categories.kids
   }
   if (token.includes("detergent") || token.includes("laundry")) {
-    return modelImages.bodyLotionSmile
+    return heroImages.categories.detergents
   }
-  return modelImages.hairSmile
+  return heroImages.categories.hair
 }
 
 // Real brand pillars (not fabricated metrics) — these describe what

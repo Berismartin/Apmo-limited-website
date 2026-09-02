@@ -11,6 +11,7 @@ import { Clock, Globe, Mail, MapPin, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
 import { contactFormSchema } from "@/lib/validators"
 import { submitContactMessageAction } from "@/lib/actions/contact"
+import { heroImages } from "@/components/apmo/data"
 
 export default function ContactPage() {
   const [loading, setLoading] = useState(false)
@@ -56,7 +57,7 @@ export default function ContactPage() {
     <div className="bg-[#fff8f1]">
       <section className="relative isolate min-h-[22rem] overflow-hidden lg:min-h-[28rem]">
         <Image
-          src="/images/new_images/models/IMG_4619.jpg"
+          src={heroImages.contact}
           alt="Apmo model holding body lotion and cream"
           fill
           priority

@@ -9,7 +9,7 @@ import {
   MagneticButton,
   Reveal,
 } from "@/components/apmo/animation"
-import { imageAssets, stats, trustMarks } from "@/components/apmo/data"
+import { heroImages, stats, trustMarks } from "@/components/apmo/data"
 
 const heroEase = [0.22, 1, 0.36, 1] as const
 
@@ -174,7 +174,7 @@ export function Hero() {
             className="absolute inset-0 overflow-hidden rounded-[2.5rem] border border-white bg-white shadow-[0_34px_120px_rgba(159,51,100,0.18)] will-change-transform"
           >
             <Image
-              src={imageAssets.hero}
+              src={heroImages.home}
               alt="Apmo model holding moisturizing leave-in conditioner"
               fill
               priority
@@ -192,7 +192,7 @@ export function Hero() {
           >
             <div className="relative h-44 overflow-hidden rounded-[1.4rem]">
               <Image
-                src={imageAssets.heroAlt}
+                src={heroImages.homeAlt}
                 alt="Close-up of textured hair styled with Apmo"
                 fill
                 sizes="176px"

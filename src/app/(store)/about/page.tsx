@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowRight, Heart, Leaf, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { modelImages } from "@/components/apmo/data"
+import { heroImages, modelImages } from "@/components/apmo/data"
 import { EditorialHero } from "@/components/layout/editorial-hero"
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function AboutPage() {
         eyebrow="About Apmo"
         title="Hair, skin, and body care that feels personal."
         copy="Apmo is a moisture-first brand photographed with real people — not stock faces. Every formula is made to be understood before you buy."
-        image={modelImages.bodyPair}
+        image={heroImages.about}
         imageAlt="Apmo model holding moisturizing lotion and body cream"
         primaryHref="/shop"
         primaryLabel="Shop products"

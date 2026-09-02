@@ -7,7 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { CoverPhoto } from "@/components/apmo/cover-photo"
-import { modelImages } from "@/components/apmo/data"
+import { heroImages } from "@/components/apmo/data"
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -62,7 +62,7 @@ export default function FAQPage() {
     <div className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
         <CoverPhoto
-          src={modelImages.hairLeaveIn}
+          src={heroImages.faq}
           alt=""
           objectPosition="top"
           className="opacity-[0.14]"

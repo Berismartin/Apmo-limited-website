@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { AppImage } from "@/components/ui/app-image"
+import { getRecentlyViewedCatalogAction } from "@/lib/actions/recently-viewed"
 import { useRecentlyViewedStore } from "@/store/recently-viewed"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import { formatPrice } from "@/lib/utils"
@@ -12,20 +13,45 @@ interface RecentlyViewedProps {
 }
 
 export function RecentlyViewed({ excludeProductId }: RecentlyViewedProps) {
-  const getItems = useRecentlyViewedStore((s) => s.getItems)
+  const items = useRecentlyViewedStore((s) => s.items)
+  const patchItems = useRecentlyViewedStore((s) => s.patchItems)
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
-  if (!mounted) return null
+  const visible = useMemo(
+    () =>
+      mounted
+        ? items
+            .filter((item) => item.productId !== excludeProductId)
+            .slice(0, 6)
+        : [],
+    [mounted, items, excludeProductId]
+  )
+  const slugsKey = visible.map((item) => item.slug).join("|")
 
-  const items = getItems(excludeProductId, 6)
-  if (items.length === 0) return null
+  useEffect(() => {
+    if (!mounted || !slugsKey) return
+    const slugs = slugsKey.split("|")
+    let cancelled = false
+    getRecentlyViewedCatalogAction(slugs)
+      .then((fresh) => {
+        if (!cancelled && fresh.length > 0) patchItems(fresh)
+      })
+      .catch(() => {
+        // Keep the local snapshot if the catalog lookup fails.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [mounted, slugsKey, patchItems])
+
+  if (!mounted || visible.length === 0) return null
 
   return (
     <section className="mt-16">
       <h2 className="text-xl font-bold tracking-tight">Recently Viewed</h2>
       <div className="mt-6 flex gap-4 overflow-x-auto pb-2">
-        {items.map((item) => (
+        {visible.map((item) => (
           <Link
             key={item.productId}
             href={`/${item.slug}`}

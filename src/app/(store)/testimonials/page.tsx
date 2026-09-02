@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Star } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { modelImages } from "@/components/apmo/data"
+import { heroImages } from "@/components/apmo/data"
 import { EditorialHero } from "@/components/layout/editorial-hero"
 import { testimonialRepository } from "@/lib/repositories"
 
@@ -26,7 +26,7 @@ export default async function TestimonialsPage() {
         eyebrow="Testimonials"
         title="Real hair stories, softer routines, brighter confidence."
         copy="Apmo is built around product care and practical education. These stories reflect the kind of warm, guided experience customers should feel across the full store."
-        image={modelImages.hairWash}
+        image={heroImages.testimonials}
         imageAlt="Wash-day ritual with Apmo moisturizing shampoo"
         primaryHref="/shop"
         primaryLabel="Shop Apmo products"
