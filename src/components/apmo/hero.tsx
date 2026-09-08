@@ -175,7 +175,7 @@ export function Hero() {
           >
             <Image
               src={heroImages.home}
-              alt="Apmo model holding moisturizing leave-in conditioner"
+              alt="Apmo Hair Butter jar"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 48vw"
@@ -193,7 +193,7 @@ export function Hero() {
             <div className="relative h-44 overflow-hidden rounded-[1.4rem]">
               <Image
                 src={heroImages.homeAlt}
-                alt="Close-up of textured hair styled with Apmo"
+                alt="Apmo Body and Hand Cream tube"
                 fill
                 sizes="176px"
                 className="object-cover"

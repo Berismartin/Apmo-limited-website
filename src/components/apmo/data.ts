@@ -47,18 +47,18 @@ export const modelImages = {
  * to match a photo used elsewhere.
  */
 export const heroImages = {
-  home: `${MODEL}/IMG_4873.jpg`,
-  homeAlt: `${MODEL}/IMG_4626.jpg`,
+  home: "/images/new_images/_DSF2600.jpg",
+  homeAlt: "/images/new_images/_DSF2541.jpg",
   about: `${MODEL}/IMG_4619.jpg`,
   testimonials: `${MODEL}/IMG_4884.jpg`,
   contact: `${MODEL}/IMG_4619.jpg`,
   faq: `${MODEL}/IMG_4873.jpg`,
   inRealLife: `${MODEL}/image.png`,
   categories: {
-    hair: `${MODEL}/image.png`,
+    hair: "/images/site_images/FRNK-1419.jpg",
     skin: `${MODEL}/IMG_4605.jpg`,
-    body: `${MODEL}/IMG_4619.jpg`,
-    kids: `${MODEL}/IMG_4873.jpg`,
+    body: `${MODEL}/hero/bodyimg.jpeg`,
+    kids: `${MODEL}/hero/kidsimg.jpeg`,
     detergents: `${MODEL}/IMG_4601.jpg`,
   },
 } as const
