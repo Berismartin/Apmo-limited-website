@@ -47,19 +47,21 @@ export const modelImages = {
  * to match a photo used elsewhere.
  */
 export const heroImages = {
-  home: "/images/new_images/_DSF2600.jpg",
-  homeAlt: "/images/new_images/_DSF2541.jpg",
+  home: `${MODEL}/hero/_DSF2661.jpg`,
+  homeAlt: `${MODEL}/hero/_DSF2413.jpg`,
   about: `${MODEL}/IMG_4619.jpg`,
   testimonials: `${MODEL}/IMG_4884.jpg`,
   contact: `${MODEL}/IMG_4619.jpg`,
   faq: `${MODEL}/IMG_4873.jpg`,
   inRealLife: `${MODEL}/image.png`,
   categories: {
-    hair: "/images/site_images/FRNK-1419.jpg",
+    hair: `${MODEL}/hero/_DSF2732.jpg`,
     skin: `${MODEL}/IMG_4605.jpg`,
     body: `${MODEL}/hero/bodyimg.jpeg`,
-    kids: `${MODEL}/hero/kidsimg.jpeg`,
-    detergents: `${MODEL}/IMG_4601.jpg`,
+    kids: `${MODEL}/hero/_DSF2676.jpg`,
+    detergents: `${MODEL}/hero/_DSF2742.jpg`,
+    // Unmatched categories keep the previous banner instead of following Hair.
+    fallback: "/images/site_images/FRNK-1419.jpg",
   },
 } as const
 
@@ -116,7 +118,7 @@ export function modelImageForCategory(slug: string, name: string) {
   if (token.includes("detergent") || token.includes("laundry")) {
     return heroImages.categories.detergents
   }
-  return heroImages.categories.hair
+  return heroImages.categories.fallback
 }
 
 // Real brand pillars (not fabricated metrics) — these describe what

@@ -175,7 +175,7 @@ export function Hero() {
           >
             <Image
               src={heroImages.home}
-              alt="Apmo Hair Butter jar"
+              alt="Apmo Extreme Hair Growth Oil with coconut and rosemary"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 48vw"
@@ -193,7 +193,7 @@ export function Hero() {
             <div className="relative h-44 overflow-hidden rounded-[1.4rem]">
               <Image
                 src={heroImages.homeAlt}
-                alt="Apmo Body and Hand Cream tube"
+                alt="Apmo Pure Growth Oil for kids"
                 fill
                 sizes="176px"
                 className="object-cover"
