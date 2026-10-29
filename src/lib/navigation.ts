@@ -20,6 +20,7 @@ export const shopLinks: NavItem[] = [
   { name: "Body", href: "/body" },
   { name: "Kids", href: "/kids" },
   { name: "Detergents", href: "/detergents" },
+  { name: "Fragrance", href: "/fragrance" },
 ]
 
 const NAV_ALIASES: Record<string, string[]> = {
@@ -28,6 +29,7 @@ const NAV_ALIASES: Record<string, string[]> = {
   body: ["body", "bodycare", "body-care", "bodybath", "body-bath"],
   kids: ["kids", "kid", "children", "child", "baby"],
   detergents: ["detergents", "detergent", "laundry"],
+  fragrance: ["fragrance", "fragrances", "perfume", "parfum"],
 }
 
 function categoryTokens(category: { name: string; slug: string }) {

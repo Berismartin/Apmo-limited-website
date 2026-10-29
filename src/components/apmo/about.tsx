@@ -15,10 +15,17 @@ export function About() {
             align="left"
           />
           <Reveal className="mt-10 rounded-[2rem] border border-rose-100 bg-white/80 p-6 leading-8 text-[#6c4354] shadow-xl shadow-rose-950/5 backdrop-blur-xl">
-            Apmo’s visual language draws from warm salon interiors, burgundy
-            accents, botanical product cues, and intimate portraiture. The
-            experience should feel close enough to trust and polished enough to
-            remember.
+            <p>
+              At Apmo, we believe that self-care is more than a routine, it’s a
+              way of showing up for yourself. We bring you beauty and personal
+              care essentials designed to make every moment of care feel special.
+              From nourishing your skin to creating moments of relaxation, Apmo
+              inspires you to feel confident, look your best, and embrace the
+              beauty of caring for yourself.
+            </p>
+            <p className="mt-4 font-serif text-xl italic text-[#351426]">
+              Apmo — Live it Natural
+            </p>
           </Reveal>
         </div>
 

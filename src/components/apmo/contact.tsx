@@ -20,8 +20,8 @@ export function Contact() {
           <Reveal className="mt-10 grid gap-4 sm:grid-cols-3">
             {[
               { icon: FiMail, label: "Email", value: "hello@apmoug.com" },
-              { icon: FiPhone, label: "Phone", value: "Available on request" },
-              { icon: FiMapPin, label: "Studio", value: "Uganda" },
+              { icon: FiPhone, label: "Phone", value: "+256 782 321 287" },
+              { icon: FiMapPin, label: "Studio", value: "Frobel, Bukoto" },
             ].map((item) => (
               <div key={item.label} className="rounded-3xl border border-rose-100 bg-white/75 p-5">
                 <item.icon className="text-rose-500" />
@@ -44,7 +44,7 @@ export function Contact() {
         <div className="relative min-h-[34rem] overflow-hidden rounded-[2rem] border border-white shadow-2xl shadow-rose-950/10">
           <CoverPhoto
             src={modelImages.bodyPair}
-            alt="Apmo model holding moisturizing lotion and body cream"
+            alt="Smiling woman in an Apmo T-shirt holding the shampoo, detangler and leave-in conditioner"
           />
         </div>
       </div>

@@ -31,9 +31,9 @@ export const modelImages = {
   hairProducts: `${MODEL}/_DSF2021.jpg`,
   skinJars: `${MODEL}/IMG_4605.jpg`,
   skinJarsAlt: `${MODEL}/WhatsApp Image 2026-09-01 at 00.34.43.jpeg`,
-  bodyLooking: `${MODEL}/IMG_4600.jpg`,
+  bodyLooking: `${MODEL}/hero/shea-body-butter-model.jpg`,
   bodyLotion: `${MODEL}/IMG_4593.jpg`,
-  bodyPair: `${MODEL}/IMG_4619.jpg`,
+  bodyPair: `${MODEL}/hero/haircare-trio-model.jpg`,
   bodyCream: `${MODEL}/IMG_4597.jpg`,
   bodyLotionSmile: `${MODEL}/IMG_4601.jpg`,
   coffeeScrub: `${MODEL}/IMG_4613.jpg`,
@@ -51,15 +51,17 @@ export const heroImages = {
   homeAlt: `${MODEL}/hero/_DSF2413.jpg`,
   about: `${MODEL}/IMG_4619.jpg`,
   testimonials: `${MODEL}/IMG_4884.jpg`,
+  shop: `${MODEL}/hero/all-products.jpg`,
   contact: `${MODEL}/IMG_4619.jpg`,
   faq: `${MODEL}/IMG_4873.jpg`,
-  inRealLife: `${MODEL}/image.png`,
+  inRealLife: `${MODEL}/hero/haircare-tray.webp`,
   categories: {
-    hair: `${MODEL}/hero/_DSF2732.jpg`,
+    hair: `${MODEL}/hero/haircare-range-model.jpg`,
     skin: `${MODEL}/IMG_4605.jpg`,
-    body: `${MODEL}/hero/bodyimg.jpeg`,
-    kids: `${MODEL}/hero/_DSF2676.jpg`,
-    detergents: `${MODEL}/hero/_DSF2742.jpg`,
+    body: `${MODEL}/hero/body-glow-oil.jpg`,
+    kids: `${MODEL}/hero/kids-range.jpg`,
+    detergents: `${MODEL}/hero/detergents-range.jpg`,
+    fragrance: `${MODEL}/hero/fragrance-range.jpg`,
     // Unmatched categories keep the previous banner instead of following Hair.
     fallback: "/images/site_images/FRNK-1419.jpg",
   },
@@ -78,7 +80,7 @@ export const collections = [
   {
     name: "Hair",
     href: "/hair",
-    image: modelImages.hairSmile,
+    image: `${MODEL}/hero/_DSF2734.jpg`,
     copy: "Moisture, detangle, and definition for textured hair.",
   },
   {
@@ -90,24 +92,25 @@ export const collections = [
   {
     name: "Body",
     href: "/body",
-    image: modelImages.bodyPair,
+    image: `${MODEL}/hero/body-glow-oil.jpg`,
     copy: "Lotions, butters, and scrubs that soften and restore.",
   },
   {
     name: "Kids",
     href: "/kids",
-    image: modelImages.hairLeaveIn,
+    image: `${MODEL}/hero/kids-hair-shampoo.jpg`,
     copy: "Gentle care for little coils, curls, and wash days.",
   },
   {
     name: "Detergents",
     href: "/detergents",
-    image: modelImages.bodyLotionSmile,
+    image: `${MODEL}/hero/hand-wash.jpg`,
     copy: "Clean formulas for the rest of the home ritual.",
   },
 ] as const
 
-export function modelImageForCategory(slug: string, name: string) {
+/** Hand-picked banner for the main categories; undefined lets the admin image show. */
+export function modelImageForCategory(slug: string, name: string): string | undefined {
   const token = `${compactSlug(slug)}${compactSlug(name)}`
   if (token.includes("hair")) return heroImages.categories.hair
   if (token.includes("skin")) return heroImages.categories.skin
@@ -118,7 +121,10 @@ export function modelImageForCategory(slug: string, name: string) {
   if (token.includes("detergent") || token.includes("laundry")) {
     return heroImages.categories.detergents
   }
-  return heroImages.categories.fallback
+  if (token.includes("fragrance") || token.includes("perfume") || token.includes("parfum")) {
+    return heroImages.categories.fragrance
+  }
+  return undefined
 }
 
 // Real brand pillars (not fabricated metrics) — these describe what
@@ -204,7 +210,7 @@ export const portfolio = [
   },
   {
     title: "Hair, in real life",
-    image: modelImages.hairSmile,
+    image: `${MODEL}/hero/hair-growth-oil-model.jpg`,
   },
 ] as const
 

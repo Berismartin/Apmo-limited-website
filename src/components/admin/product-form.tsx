@@ -197,7 +197,7 @@ export function ProductForm({
             existing={product?.images ?? []}
             productId={product?.id}
             onDeleteImage={handleDeleteImage}
-            enableBackgroundRemoval
+            enableCrop
             onReadyFilesChange={(files) => {
               imageFilesRef.current = files
             }}

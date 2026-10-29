@@ -2,8 +2,16 @@
 
 import { AppImage } from "@/components/ui/app-image"
 import { useRef, useState, useCallback, useEffect } from "react"
-import { Check, Upload, X, ImageIcon, Loader2 } from "lucide-react"
+import Cropper, { type Area } from "react-easy-crop"
+import { Crop, Upload, X, ImageIcon, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { MAX_IMAGE_UPLOAD_BYTES } from "@/lib/constants"
 import type { ProductImage } from "@/types"
@@ -14,8 +22,8 @@ interface ImageUploaderProps {
   existing?: ProductImage[]
   productId?: string
   onDeleteImage?: (imageUrl: string) => Promise<void>
-  /** Product forms can opt into background removal with approve/reject. */
-  enableBackgroundRemoval?: boolean
+  /** Product forms can square-crop each new image before upload. */
+  enableCrop?: boolean
   /** Called whenever the files that should be submitted change. */
   onReadyFilesChange?: (files: File[]) => void
 }
@@ -27,40 +35,55 @@ export function attachReadyImageFiles(formData: FormData, files: File[]) {
   }
 }
 
-function readyFilesFromPending(items: PendingImage[]): File[] {
-  return items.flatMap((item) => {
-    if (item.status !== "ready") return []
-    const file =
-      item.removeBackground && item.processedFile
-        ? item.processedFile
-        : item.originalFile
-    return [file]
-  })
+// Longest edge of a cropped image — big enough for zoom, small enough for the upload limit.
+const MAX_CROP_EDGE = 2000
+
+async function cropImageFile(file: File, url: string, area: Area): Promise<File> {
+  const image = new Image()
+  image.src = url
+  await image.decode()
+
+  const edge = Math.min(Math.round(area.width), MAX_CROP_EDGE)
+  const canvas = document.createElement("canvas")
+  canvas.width = edge
+  canvas.height = edge
+  const context = canvas.getContext("2d")
+  if (!context) throw new Error("Could not crop this image")
+  context.drawImage(image, area.x, area.y, area.width, area.height, 0, 0, edge, edge)
+
+  // Canvas can't write GIF; keep PNG/WebP transparency, everything else as JPEG.
+  const type = file.type === "image/png" || file.type === "image/webp" ? file.type : "image/jpeg"
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.92))
+  if (!blob) throw new Error("Could not crop this image")
+
+  const extension = type.split("/")[1].replace("jpeg", "jpg")
+  const name = file.name.replace(/\.[^/.]+$/, "") + `-crop.${extension}`
+  return new File([blob], name, { type, lastModified: Date.now() })
 }
 
 type PendingImage = {
   id: string
-  originalFile: File
-  originalUrl: string
-  processedFile?: File
-  processedUrl?: string
-  status: "ready" | "processing" | "review" | "error"
-  error?: string
-  removeBackground: boolean
+  file: File
+  url: string
 }
 
 export function ImageUploader({
   existing = [],
   onDeleteImage,
-  enableBackgroundRemoval = false,
+  enableCrop = false,
   onReadyFilesChange,
 }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [removeBackground, setRemoveBackground] = useState(false)
   const [pending, setPending] = useState<PendingImage[]>([])
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null)
+  const [cropTargetId, setCropTargetId] = useState<string | null>(null)
+  const [cropPosition, setCropPosition] = useState({ x: 0, y: 0 })
+  const [cropZoom, setCropZoom] = useState(1)
+  const [cropArea, setCropArea] = useState<Area | null>(null)
+  const [isCropping, setIsCropping] = useState(false)
+  const [cropError, setCropError] = useState<string | null>(null)
   const dataTransferRef = useRef<DataTransfer | null>(null)
   const onReadyFilesChangeRef = useRef(onReadyFilesChange)
   onReadyFilesChangeRef.current = onReadyFilesChange
@@ -68,15 +91,12 @@ export function ImageUploader({
   useEffect(() => {
     dataTransferRef.current = new DataTransfer()
     return () => {
-      pending.forEach((item) => {
-        URL.revokeObjectURL(item.originalUrl)
-        if (item.processedUrl) URL.revokeObjectURL(item.processedUrl)
-      })
+      pending.forEach((item) => URL.revokeObjectURL(item.url))
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const syncInputFiles = useCallback((items: PendingImage[]) => {
-    const files = readyFilesFromPending(items)
+    const files = items.map((item) => item.file)
     onReadyFilesChangeRef.current?.(files)
 
     const dt = new DataTransfer()
@@ -100,58 +120,6 @@ export function ImageUploader({
     [syncInputFiles]
   )
 
-  // Background removal loads and runs a full ML model client-side (WASM).
-  // Firing several of these at once is what makes a multi-image upload feel
-  // like it has hung — chain jobs onto a queue so only one runs at a time.
-  const bgRemovalQueueRef = useRef<Promise<void>>(Promise.resolve())
-
-  const processBackgroundRemoval = useCallback((itemId: string, file: File) => {
-    const job = async () => {
-      try {
-        const { removeBackground: removeBg } = await import("@imgly/background-removal")
-        const blob = await removeBg(file, {
-          output: { format: "image/png", quality: 0.9 },
-          model: "isnet_fp16",
-        })
-
-        const processedName = file.name.replace(/\.[^/.]+$/, "") + "-nobg.png"
-        const processedFile = new File([blob], processedName, {
-          type: "image/png",
-          lastModified: Date.now(),
-        })
-        const processedUrl = URL.createObjectURL(processedFile)
-
-        updatePending((prev) =>
-          prev.map((item) => {
-            if (item.id !== itemId) return item
-            if (item.processedUrl) URL.revokeObjectURL(item.processedUrl)
-            return {
-              ...item,
-              processedFile,
-              processedUrl,
-              status: "review",
-              error: undefined,
-            }
-          })
-        )
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Background removal failed"
-        updatePending((prev) =>
-          prev.map((item) =>
-            item.id === itemId
-              ? { ...item, status: "error", error: message }
-              : item
-          )
-        )
-      }
-    }
-
-    // Chain onto the queue regardless of whether the previous job succeeded
-    // or failed, so one failure doesn't stall every image behind it.
-    bgRemovalQueueRef.current = bgRemovalQueueRef.current.then(job, job)
-  }, [updatePending])
-
   const handleFiles = useCallback(
     (files: FileList | File[]) => {
       if (!files.length) return
@@ -167,14 +135,10 @@ export function ImageUploader({
           continue
         }
 
-        const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-        const shouldRemoveBg = enableBackgroundRemoval && removeBackground
         additions.push({
-          id,
-          originalFile: file,
-          originalUrl: URL.createObjectURL(file),
-          status: shouldRemoveBg ? "processing" : "ready",
-          removeBackground: shouldRemoveBg,
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          file,
+          url: URL.createObjectURL(file),
         })
       }
 
@@ -191,19 +155,8 @@ export function ImageUploader({
       if (additions.length === 0) return
 
       updatePending((prev) => [...prev, ...additions])
-
-      for (const item of additions) {
-        if (item.status === "processing") {
-          void processBackgroundRemoval(item.id, item.originalFile)
-        }
-      }
     },
-    [
-      enableBackgroundRemoval,
-      removeBackground,
-      processBackgroundRemoval,
-      updatePending,
-    ]
+    [updatePending]
   )
 
   const handleDrop = useCallback(
@@ -227,57 +180,43 @@ export function ImageUploader({
   const removePending = (id: string) => {
     updatePending((prev) => {
       const target = prev.find((item) => item.id === id)
-      if (target) {
-        URL.revokeObjectURL(target.originalUrl)
-        if (target.processedUrl) URL.revokeObjectURL(target.processedUrl)
-      }
+      if (target) URL.revokeObjectURL(target.url)
       return prev.filter((item) => item.id !== id)
     })
   }
 
-  const approveProcessed = (id: string) => {
-    updatePending((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, status: "ready", removeBackground: true }
-          : item
-      )
-    )
+  const openCrop = (id: string) => {
+    setCropPosition({ x: 0, y: 0 })
+    setCropZoom(1)
+    setCropArea(null)
+    setCropError(null)
+    setCropTargetId(id)
   }
 
-  const rejectProcessed = (id: string) => {
-    updatePending((prev) =>
-      prev.map((item) => {
-        if (item.id !== id) return item
-        if (item.processedUrl) URL.revokeObjectURL(item.processedUrl)
-        return {
-          ...item,
-          processedFile: undefined,
-          processedUrl: undefined,
-          removeBackground: false,
-          status: "ready",
-          error: undefined,
-        }
-      })
-    )
-  }
+  const cropTarget = pending.find((item) => item.id === cropTargetId)
 
-  const retryProcessing = (id: string) => {
-    const item = pending.find((entry) => entry.id === id)
-    if (!item) return
-    updatePending((prev) =>
-      prev.map((entry) =>
-        entry.id === id
-          ? {
-              ...entry,
-              status: "processing",
-              error: undefined,
-              removeBackground: true,
-            }
-          : entry
+  const applyCrop = async () => {
+    if (!cropTarget || !cropArea) return
+    setIsCropping(true)
+    try {
+      const croppedFile = await cropImageFile(cropTarget.file, cropTarget.url, cropArea)
+      if (croppedFile.size > MAX_IMAGE_UPLOAD_BYTES) {
+        throw new Error(`The cropped image is over ${maxImageUploadMb} MB.`)
+      }
+      const croppedUrl = URL.createObjectURL(croppedFile)
+      updatePending((prev) =>
+        prev.map((item) => {
+          if (item.id !== cropTarget.id) return item
+          URL.revokeObjectURL(item.url)
+          return { ...item, file: croppedFile, url: croppedUrl }
+        })
       )
-    )
-    void processBackgroundRemoval(id, item.originalFile)
+      setCropTargetId(null)
+    } catch (error) {
+      setCropError(error instanceof Error ? error.message : "Could not crop this image")
+    } finally {
+      setIsCropping(false)
+    }
   }
 
   const handleDelete = async (url: string) => {
@@ -289,12 +228,6 @@ export function ImageUploader({
       setDeletingUrl(null)
     }
   }
-
-  const reviewing = pending.filter((item) => item.status === "review")
-  const processing = pending.filter((item) => item.status === "processing")
-  const readyOrError = pending.filter(
-    (item) => item.status === "ready" || item.status === "error"
-  )
 
   return (
     <div className="space-y-5">
@@ -343,26 +276,6 @@ export function ImageUploader({
           {existing.length > 0 ? "Upload new images" : "Product images"}
         </Label>
 
-        {enableBackgroundRemoval ? (
-          <label className="flex items-start gap-2 rounded-xl border border-rose-100 bg-rose-50/50 px-3 py-3 text-sm">
-            <input
-              type="checkbox"
-              checked={removeBackground}
-              onChange={(e) => setRemoveBackground(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-input"
-            />
-            <span>
-              <span className="font-medium text-[#351426]">
-                Remove background from new images
-              </span>
-              <span className="mt-0.5 block text-xs text-muted-foreground">
-                We’ll process each image, show a preview, then you can approve or
-                reject before it is uploaded.
-              </span>
-            </span>
-          </label>
-        ) : null}
-
         <input
           ref={inputRef}
           id="image_file"
@@ -375,108 +288,16 @@ export function ImageUploader({
           aria-label="Upload product images"
         />
 
-        {processing.length > 0 ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            <div className="flex items-center gap-2 font-medium">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Removing background…
-            </div>
-            <p className="mt-1 text-xs text-amber-900/80">
-              First run may take longer while the model downloads. Please wait.
-            </p>
-          </div>
-        ) : null}
-
-        {reviewing.map((item) => (
-          <div
-            key={item.id}
-            className="rounded-2xl border border-rose-100 bg-white p-4 shadow-sm"
-          >
-            <p className="text-sm font-medium text-[#351426]">
-              Review background removal · {item.originalFile.name}
-            </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Original
-                </p>
-                <div className="relative aspect-square overflow-hidden rounded-xl border border-rose-100 bg-rose-50">
-                  <AppImage
-                    src={item.originalUrl}
-                    alt={`Original ${item.originalFile.name}`}
-                    fill
-                    sizes="240px"
-                    className="object-contain"
-                  />
-                </div>
-              </div>
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Background removed
-                </p>
-                <div
-                  className="relative aspect-square overflow-hidden rounded-xl border border-rose-100"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(45deg, #f1e4ea 25%, transparent 25%), linear-gradient(-45deg, #f1e4ea 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1e4ea 75%), linear-gradient(-45deg, transparent 75%, #f1e4ea 75%)",
-                    backgroundSize: "16px 16px",
-                    backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0",
-                    backgroundColor: "#fff",
-                  }}
-                >
-                  {item.processedUrl ? (
-                    <AppImage
-                      src={item.processedUrl}
-                      alt={`Processed ${item.originalFile.name}`}
-                      fill
-                      sizes="240px"
-                      className="object-contain"
-                    />
-                  ) : null}
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button type="button" onClick={() => approveProcessed(item.id)}>
-                <Check className="mr-2 h-4 w-4" />
-                Approve cutout
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => rejectProcessed(item.id)}
-              >
-                Reject — keep original
-              </Button>
-            </div>
-          </div>
-        ))}
-
-        {readyOrError.length > 0 && (
+        {pending.length > 0 && (
           <div className="flex flex-wrap gap-3">
-            {readyOrError.map((item) => (
+            {pending.map((item) => (
               <div
                 key={item.id}
                 className="relative h-24 w-24 overflow-hidden rounded-xl border border-rose-200 bg-rose-50 shadow-sm"
-                style={
-                  item.removeBackground && item.processedUrl
-                    ? {
-                        backgroundImage:
-                          "linear-gradient(45deg, #f1e4ea 25%, transparent 25%), linear-gradient(-45deg, #f1e4ea 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1e4ea 75%), linear-gradient(-45deg, transparent 75%, #f1e4ea 75%)",
-                        backgroundSize: "12px 12px",
-                        backgroundPosition: "0 0, 0 6px, 6px -6px, -6px 0",
-                        backgroundColor: "#fff",
-                      }
-                    : undefined
-                }
               >
                 <AppImage
-                  src={
-                    item.removeBackground && item.processedUrl
-                      ? item.processedUrl
-                      : item.originalUrl
-                  }
-                  alt={item.originalFile.name}
+                  src={item.url}
+                  alt={item.file.name}
                   fill
                   sizes="96px"
                   className="object-contain"
@@ -489,13 +310,15 @@ export function ImageUploader({
                 >
                   <X className="h-3 w-3" />
                 </button>
-                {item.status === "error" ? (
+                {enableCrop ? (
                   <button
                     type="button"
-                    onClick={() => retryProcessing(item.id)}
-                    className="absolute inset-x-1 bottom-1 rounded bg-rose-700 px-1 py-0.5 text-[10px] font-medium text-white"
+                    onClick={() => openCrop(item.id)}
+                    className="absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/80 text-rose-700 shadow-sm backdrop-blur-sm transition-colors hover:bg-rose-100"
+                    aria-label={`Crop ${item.file.name}`}
+                    title="Crop to square"
                   >
-                    Retry
+                    <Crop className="h-3 w-3" />
                   </button>
                 ) : null}
               </div>
@@ -540,9 +363,7 @@ export function ImageUploader({
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               PNG, JPG, WebP or GIF · max {maxImageUploadMb} MB each
-              {enableBackgroundRemoval && removeBackground
-                ? " · background removal preview before upload"
-                : " · uploaded as-is"}
+              {enableCrop ? " · crop to square before saving" : " · uploaded as-is"}
             </p>
           </div>
         </div>
@@ -553,6 +374,69 @@ export function ImageUploader({
           </p>
         ) : null}
       </div>
+
+      {enableCrop ? (
+        <Dialog
+          open={Boolean(cropTarget)}
+          onOpenChange={(open) => {
+            if (!open && !isCropping) setCropTargetId(null)
+          }}
+        >
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Crop to square</DialogTitle>
+            </DialogHeader>
+            {cropTarget ? (
+              <div className="relative mx-auto aspect-square w-[min(100%,60dvh)] overflow-hidden rounded-xl bg-[#351426]">
+                <Cropper
+                  image={cropTarget.url}
+                  crop={cropPosition}
+                  zoom={cropZoom}
+                  aspect={1}
+                  onCropChange={setCropPosition}
+                  onZoomChange={setCropZoom}
+                  onCropComplete={(_, pixels) => setCropArea(pixels)}
+                />
+              </div>
+            ) : null}
+            <label className="grid gap-2 text-xs text-muted-foreground">
+              Zoom
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.05}
+                value={cropZoom}
+                onChange={(e) => setCropZoom(Number(e.target.value))}
+                className="accent-rose-600"
+              />
+            </label>
+            {cropError ? (
+              <p className="text-sm text-rose-700" role="alert">
+                {cropError}
+              </p>
+            ) : null}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isCropping}
+                onClick={() => setCropTargetId(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={isCropping || !cropArea}
+                onClick={applyCrop}
+              >
+                {isCropping ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Apply crop
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   )
 }

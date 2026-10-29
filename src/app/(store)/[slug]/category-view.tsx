@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
+import { AppImage } from "@/components/ui/app-image"
 import { breadcrumbJsonLd } from "@/lib/structured-data"
 import {
   Breadcrumb,
@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { ProductGrid } from "@/components/products/product-grid"
 import { Pagination } from "@/components/products/pagination"
-import { modelImageForCategory } from "@/components/apmo/data"
+import { heroImages, modelImageForCategory } from "@/components/apmo/data"
 import type { Category, Product, PaginationMeta } from "@/types"
 
 interface CategoryViewProps {
@@ -43,7 +43,10 @@ export function CategoryView({
   ancestors = [],
 }: CategoryViewProps) {
   const parentTrail = ancestors.filter((cat) => cat.id !== category.id)
-  const heroImage = modelImageForCategory(category.slug, category.name)
+  const heroImage =
+    modelImageForCategory(category.slug, category.name) ??
+    category.image?.url ??
+    heroImages.categories.fallback
   // Full ancestor trail for breadcrumbs — e.g. Shop > Hair
   const trail = [
     { name: "Shop", href: "/shop" },
@@ -54,7 +57,7 @@ export function CategoryView({
   return (
     <div>
       <div className="relative isolate h-[16rem] overflow-hidden sm:h-[20rem] lg:h-[24rem]">
-        <Image
+        <AppImage
           src={heroImage}
           alt=""
           fill

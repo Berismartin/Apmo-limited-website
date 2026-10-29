@@ -52,8 +52,7 @@ export function LifestyleBanner() {
     <section className="relative isolate min-h-[28rem] overflow-hidden lg:min-h-[34rem]">
       <CoverPhoto
         src={heroImages.inRealLife}
-        alt="Apmo model with textured hair and haircare products"
-        objectPosition="center top"
+        alt="Apmo haircare range on a wooden tray"
       />
       <div className="absolute inset-0 bg-[#351426]/45" />
       <div className="relative mx-auto flex min-h-[28rem] max-w-7xl flex-col items-start justify-end px-4 py-16 sm:px-6 lg:min-h-[34rem] lg:py-24">
@@ -61,11 +60,12 @@ export function LifestyleBanner() {
           In real life
         </p>
         <h2 className="mt-4 max-w-2xl font-serif text-5xl italic leading-[0.95] tracking-[-0.05em] text-white sm:text-7xl">
-          Care you can see on skin and strands.
+          Products that utilize nature to enhance your look
         </h2>
         <p className="mt-5 max-w-xl text-base leading-7 text-white/80 sm:text-lg">
-          From wash day to body butter, the people in these frames are using the
-          same formulas you can shop today.
+          At Apmo, we believe nature offers a beautiful foundation for caring for
+          your skin and hair. We draw inspiration from nature to create personal
+          care products that bring nature closer to your everyday routine.
         </p>
         <div className="mt-8">
           <MagneticButton href="/shop">Shop all products</MagneticButton>
@@ -90,7 +90,7 @@ export function SoftPortraitBand() {
       <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <Reveal>
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-rose-600">
-            Made to be worn
+            Made to nourish your skin
           </p>
           <h2 className="mt-4 font-serif text-5xl italic leading-[0.95] tracking-[-0.05em] text-[#351426] sm:text-6xl">
             Texture, skin, and the people who carry them.
@@ -103,7 +103,7 @@ export function SoftPortraitBand() {
         <div className="relative min-h-[28rem] overflow-hidden rounded-[2rem] border border-white shadow-2xl shadow-rose-950/10">
           <CoverPhoto
             src={modelImages.bodyLooking}
-            alt="Apmo body lotion held by a model"
+            alt="Model holding a jar of Apmo Shea Body Butter"
           />
         </div>
       </div>

@@ -7,6 +7,8 @@ import { Pagination } from "@/components/products/pagination"
 import { SortDropdown } from "@/components/products/sort-dropdown"
 import type { SortOption } from "@/types"
 import { siteConfig } from "@/lib/config"
+import { EditorialHero } from "@/components/layout/editorial-hero"
+import { heroImages } from "@/components/apmo/data"
 
 interface ShopPageProps {
   searchParams: Promise<{
@@ -65,19 +67,35 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   if (categorySlug) currentParams.category = categorySlug
   if (searchQuery) currentParams.q = searchQuery
 
+  // Hero only on the plain All Products view; filtered/search views keep the compact header.
+  const showHero = !categorySlug && !searchQuery
+  const Heading = showHero ? "h2" : "h1"
+
   return (
+    <>
+    {showHero ? (
+      <EditorialHero
+        eyebrow="All products"
+        title="Everything Apmo, in one place."
+        copy="Hair, skin, body, kids, and home care — natural formulas made for your everyday routine."
+        image={heroImages.shop}
+        overlayClassName="bg-[#351426]/40"
+        imagePosition="center 80%"
+        imageAlt="The Apmo skin and body care range: body lotions, shea body cream, coffee body scrub, facial cream, herbal skin glow soap, body glow oil, body and hand cream, and herbal jelly"
+      />
+    ) : null}
     <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <Heading className="text-3xl font-bold tracking-tight">
             {categorySlug
               ? categories.find((c) => c.slug === categorySlug)?.name ??
                 "Shop"
               : searchQuery
                 ? `Results for "${searchQuery}"`
                 : "All Products"}
-          </h1>
+          </Heading>
           <p className="mt-1 text-sm text-muted-foreground">
             {pagination.total} {pagination.total === 1 ? "product" : "products"}
           </p>
@@ -131,5 +149,6 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         />
       </div>
     </div>
+    </>
   )
 }

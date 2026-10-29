@@ -5,8 +5,7 @@ import { redirects as redirectRules } from "./src/lib/redirects";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
-  // Keep heavy WASM/ONNX packages out of the server bundle.
-  serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web", "sharp"],
+  serverExternalPackages: ["sharp"],
   // Product/blog image uploads are allowed up to 2 MB each; default action
   // body limit is 1 MB and fails only after deploy (next dev is lenient).
   experimental: {

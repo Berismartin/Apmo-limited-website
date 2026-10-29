@@ -16,6 +16,7 @@ import { blogRepository } from "@/lib/repositories"
 import { formatDate } from "@/lib/utils"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import { siteConfig } from "@/lib/config"
+import { formatBlogBody } from "@/lib/blog-body"
 
 interface PostProps {
   params: Promise<{ slug: string }>
@@ -129,7 +130,7 @@ export default async function BlogPostPage({ params }: PostProps) {
 
         <div
           className="blog-body mt-10"
-          dangerouslySetInnerHTML={{ __html: post.body }}
+          dangerouslySetInnerHTML={{ __html: formatBlogBody(post.body) }}
         />
 
         {post.tags.length > 0 && (

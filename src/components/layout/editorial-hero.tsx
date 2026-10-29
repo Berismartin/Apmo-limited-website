@@ -12,6 +12,10 @@ interface EditorialHeroProps {
   primaryLabel?: string
   secondaryHref?: string
   secondaryLabel?: string
+  /** Replaces the default left-to-right gradient over the photo. */
+  overlayClassName?: string
+  /** CSS object-position for the photo, e.g. "center 75%". */
+  imagePosition?: string
 }
 
 export function EditorialHero({
@@ -24,6 +28,8 @@ export function EditorialHero({
   primaryLabel,
   secondaryHref,
   secondaryLabel,
+  overlayClassName = "bg-gradient-to-r from-[#351426]/80 via-[#351426]/45 to-[#351426]/20",
+  imagePosition = "center",
 }: EditorialHeroProps) {
   return (
     <section className="relative isolate min-h-[28rem] overflow-hidden lg:min-h-[36rem]">
@@ -33,9 +39,10 @@ export function EditorialHero({
         fill
         priority
         sizes="100vw"
-        className="object-cover object-center"
+        className="object-cover"
+        style={{ objectPosition: imagePosition }}
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#351426]/80 via-[#351426]/45 to-[#351426]/20" />
+      <div className={`absolute inset-0 ${overlayClassName}`} />
       <div className="relative mx-auto flex min-h-[28rem] max-w-[1440px] flex-col justify-end px-4 py-16 sm:px-6 lg:min-h-[36rem] lg:px-8 lg:py-24">
         <p className="text-xs font-semibold uppercase tracking-[0.35em] text-rose-100">
           {eyebrow}

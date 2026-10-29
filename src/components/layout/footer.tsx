@@ -62,7 +62,7 @@ export function Footer() {
               />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
-              {siteConfig.tagline}
+              Apmo. Live it Natural.
             </p>
           </div>
 
@@ -124,7 +124,7 @@ export function Footer() {
           <p className="text-xs text-muted-foreground">
             &copy; {siteConfig.copyrightYear} {siteConfig.name}. All rights reserved.
             <br className="sm:hidden" />
-            {" "}Premium textured haircare rituals.
+            {" "}Live it Natural.
           </p>
           <div className="flex items-center gap-4">
             <a
